@@ -40,6 +40,11 @@ export default function QuoteListPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState('')
   const [error, setError]     = useState('')
+  const [displayCount, setDisplayCount] = useState(20)
+
+  useEffect(() => {
+    setDisplayCount(20)
+  }, [filter, quotes])
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
@@ -65,6 +70,7 @@ export default function QuoteListPage() {
   }
 
   const filtered = filter ? quotes.filter(q=>q.TrangThaiBaoGia===filter) : quotes
+  const displayed = filtered.slice(0, displayCount)
   const canApprove = user?.Role === 'Admin' || user?.Role === 'Quản lý CS'
   const canDeposit = user?.Role === 'Thu ngân' || user?.Role === 'Admin' || user?.Role === 'Quản lý CS'
 
@@ -90,7 +96,7 @@ export default function QuoteListPage() {
       {!loading && !filtered.length && <div className="text-center py-12 text-slate-400 text-sm">Chưa có báo giá nào</div>}
 
       <div className="space-y-2">
-        {filtered.map(q => (
+        {displayed.map(q => (
           <div key={q.MaBaoGia} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
             <div className="flex items-start gap-3">
               <div className="flex-1 min-w-0">
@@ -132,6 +138,12 @@ export default function QuoteListPage() {
             )}
           </div>
         ))}
+        {filtered.length > displayCount && (
+          <button onClick={() => setDisplayCount(prev => prev + 20)}
+            className="w-full py-3 text-xs font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
+            Xem thêm ({filtered.length - displayCount} báo giá)
+          </button>
+        )}
       </div>
     </div>
   )

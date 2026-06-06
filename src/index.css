@@ -2,7 +2,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-* { font-family: 'Be Vietnam Pro', sans-serif; }
+* {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button, a, select, input, textarea, [role="button"] {
+  touch-action: manipulation;
+}
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 @keyframes slideUp { from { opacity:0; transform:translateY(10px);} to {opacity:1;transform:translateY(0);} }

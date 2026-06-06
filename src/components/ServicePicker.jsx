@@ -10,6 +10,7 @@ export default function ServicePicker() {
   const [search, setSearch]     = useState('')
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState('')
+  const [displayCount, setDisplayCount] = useState(25)
 
   useEffect(() => {
     API.getServices()
@@ -18,11 +19,17 @@ export default function ServicePicker() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    setDisplayCount(25)
+  }, [group, search])
+
   const filtered = useMemo(() => services.filter(s => {
     const g = group === 'Tất cả' || s.NhomDichVu === group
     const q = !search || s.TenDichVu?.toLowerCase().includes(search.toLowerCase()) || s.MaDichVu?.toLowerCase().includes(search.toLowerCase())
     return g && q
   }), [services, group, search])
+
+  const displayed = useMemo(() => filtered.slice(0, displayCount), [filtered, displayCount])
 
   const cartTotal = cart.reduce((s,i) => s + (Number(i._svc?.GiaSauKM)||0) * i.quantity, 0)
 
@@ -54,13 +61,13 @@ export default function ServicePicker() {
 
       <div className="space-y-2">
         {filtered.length === 0 && <div className="text-center py-10 text-slate-400 text-sm">Không tìm thấy dịch vụ phù hợp</div>}
-        {filtered.map(svc => {
+        {displayed.map(svc => {
           const inCart = cart.find(i => i.serviceId === svc.MaDichVu)
           const qty = inCart?.quantity || 1
           return (
             <div key={svc.MaDichVu}
               className={`bg-white rounded-2xl border shadow-sm transition-all ${inCart ? 'border-indigo-400 ring-2 ring-indigo-100' : 'border-slate-100 hover:border-slate-300'}`}>
-              <div className="p-3.5 flex items-start gap-3 cursor-pointer select-none"
+              <div className="p-3.5 flex items-start gap-3 cursor-pointer select-none active:bg-slate-50 transition-colors"
                 onClick={() => inCart ? removeFromCart(svc.MaDichVu) : addToCart(svc)}>
                 <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all
                   ${inCart ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'}`}>
@@ -98,6 +105,12 @@ export default function ServicePicker() {
             </div>
           )
         })}
+        {filtered.length > displayCount && (
+          <button onClick={() => setDisplayCount(prev => prev + 25)}
+            className="w-full py-3 text-xs font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
+            Xem thêm ({filtered.length - displayCount} dịch vụ)
+          </button>
+        )}
       </div>
     </div>
   )
