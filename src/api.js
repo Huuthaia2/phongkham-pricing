@@ -8,7 +8,7 @@ async function request(method, path, params = {}, body = null) {
   })
   const options = { method, redirect: 'follow' }
   if (body) {
-    options.headers = { 'Content-Type': 'application/json' }
+    options.headers = { 'Content-Type': 'text/plain;charset=utf-8' }
     options.body = JSON.stringify(body)
   }
   const res = await fetch(url.toString(), options)
