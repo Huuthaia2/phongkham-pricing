@@ -2,6 +2,9 @@ import React, { useState } from 'react'
 import { API } from '../api'
 import { useStore } from '../store'
 
+const GAS_URL = import.meta.env.VITE_GAS_URL
+const isConfigured = GAS_URL && GAS_URL.startsWith('http')
+
 export default function LoginPage() {
   const { setUser } = useStore()
   const [email, setEmail] = useState('')
@@ -13,12 +16,16 @@ export default function LoginPage() {
     setLoading(true); setError('')
     try {
       const data = await API.getStaff()
-      const match = (data.staff || []).find(s =>
-        s.Email?.toLowerCase().trim() === email.toLowerCase().trim() ||
-        s.SoDienThoai?.trim() === email.trim()
-      )
+      const input = String(email || '').toLowerCase().trim()
+      const match = (data.staff || []).find(s => {
+        const sEmail = String(s.Email || '').toLowerCase().trim()
+        const sPhone = String(s.SoDienThoai || '').trim()
+        return sEmail === input || sPhone === input
+      })
       if (!match) throw new Error('Không tìm thấy tài khoản. Kiểm tra lại email hoặc SĐT.')
-      if (match.TrangThai !== 'Đang làm việc') throw new Error('Tài khoản đã bị vô hiệu hóa.')
+      if (String(match.TrangThai || '').trim() !== 'Đang làm việc') {
+        throw new Error('Tài khoản đã bị vô hiệu hóa.')
+      }
       setUser(match)
     } catch (err) {
       setError(err.message)
@@ -39,17 +46,34 @@ export default function LoginPage() {
           <h2 className="font-bold text-slate-800 mb-5 text-lg">Đăng nhập</h2>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Email hoặc Số điện thoại</label>
-              <input className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
-                placeholder="email@phongkham.vn hoặc 09xx..." value={email} onChange={e=>setEmail(e.target.value)} autoFocus required />
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                Email hoặc Số điện thoại
+              </label>
+              <input
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+                placeholder="email@phongkham.vn hoặc 09xx..."
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoFocus
+                required
+              />
             </div>
-            {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">⚠️ {error}</div>}
-            <button type="submit" disabled={loading || !email.trim()}
-              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-indigo-200">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+                ⚠️ {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={loading || !email.trim()}
+              className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-indigo-200"
+            >
               {loading ? '⏳ Đang xác thực...' : 'Đăng nhập →'}
             </button>
           </form>
-          <p className="text-xs text-slate-400 text-center mt-5">Liên hệ Admin nếu không đăng nhập được</p>
+          <p className="text-xs text-slate-400 text-center mt-4">
+            Liên hệ Admin nếu không đăng nhập được
+          </p>
         </div>
       </div>
     </div>
