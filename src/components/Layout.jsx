@@ -11,7 +11,12 @@ const NAV = [
 ]
 
 export default function Layout({ children }) {
-  const { user, activeTab, setActiveTab, logout } = useStore()
+  const { user, activeTab, setActiveTab, bumpQuotesVersion, logout } = useStore()
+
+  function handleNavClick(id) {
+    if (id === 'quotes') bumpQuotesVersion()
+    setActiveTab(id)
+  }
   const visible = NAV.filter(n => n.roles.includes(user?.Role || ''))
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden">
@@ -36,7 +41,7 @@ export default function Layout({ children }) {
             const Icon = n.icon
             const active = activeTab === n.id
             return (
-              <button key={n.id} onClick={() => setActiveTab(n.id)} title={n.label}
+              <button key={n.id} onClick={() => handleNavClick(n.id)} title={n.label}
                 className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all
                   ${active ? 'bg-white text-indigo-600 shadow-lg' : 'text-indigo-300 hover:bg-indigo-700'}`}>
                 <Icon className="w-5 h-5" />
@@ -55,7 +60,7 @@ export default function Layout({ children }) {
           const Icon = n.icon
           const active = activeTab === n.id
           return (
-            <button key={n.id} onClick={() => setActiveTab(n.id)}
+            <button key={n.id} onClick={() => handleNavClick(n.id)}
               className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 text-xs font-semibold
                 ${active ? 'text-indigo-600' : 'text-slate-400'}`}>
               <Icon className="w-5 h-5" />
