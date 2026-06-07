@@ -148,7 +148,9 @@ export default function ServicePicker() {
   useEffect(() => { setDisplayCount(25) }, [group, search])
 
   const filtered = useMemo(() => {
+    const cartIds = new Set(cart.map(i => i.serviceId))
     const list = services.filter(s => {
+      if (cartIds.has(s.MaDichVu)) return true
       const g = group === 'Tất cả' || s.NhomDichVu === group
       const q = !search || s.TenDichVu?.toLowerCase().includes(search.toLowerCase()) || s.MaDichVu?.toLowerCase().includes(search.toLowerCase())
       return g && q
@@ -183,7 +185,8 @@ export default function ServicePicker() {
       const p = calcComboPreview(r, cart, services)
       if (!p) return
       let effectiveTotal = cartTotal
-      if (r.combo.LoaiGia === 'GIA_TONG' && p.total > 0) {
+      if (r.combo.LoaiGia === 'GIA_TONG') {
+        if (!p.total || p.total <= 0) return  // GiaCombo chưa set, bỏ qua
         const comboIds = r.conditionResults
           .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
           .flatMap(c => c.matched)
@@ -245,7 +248,7 @@ export default function ServicePicker() {
           ✓ Đã chọn {cart.length} dịch vụ
           {bestApplied ? (
             <>
-              {' '}· Combo: <span>{bestApplied.effectiveTotal.toLocaleString('vi-VN')}đ</span>
+              {' '}· Tổng TQ: <span>{bestApplied.effectiveTotal.toLocaleString('vi-VN')}đ</span>
               <span className="text-green-600 ml-1 normal-case font-bold">↓ Tiết kiệm {bestApplied.saving.toLocaleString('vi-VN')}đ</span>
             </>
           ) : (
