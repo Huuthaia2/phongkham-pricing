@@ -343,6 +343,52 @@ function matchCombo_(combo, cart, services) {
   return { combo: combo, allMet: allMet, conditionResults: conditionResults, targetServices: targetServices };
 }
 
+// Parse số tiền từ ô currency (trả về raw value hoặc parse text "1.000.000 ₫")
+function parseCurrency_(val) {
+  if (typeof val === 'number') return val;
+  return Number(String(val).replace(/[^\d]/g, '')) || 0;
+}
+
+// Tính KM Sinh nhật theo đúng tier từ DM_LuatKM
+function getKMSinhNhat_(rules, totalTQ, groupCount, specialType) {
+  var active = rules.filter(function(r) {
+    return String(r.MaLuatKM || '').indexOf('KMSN-') === 0
+      && String(r.TrangThai || '') === 'Đang áp dụng';
+  });
+  var applied = [];
+
+  // 1. Bill tier (KMSN-01~04): chọn mức cao nhất đủ điều kiện
+  var billMas = ['KMSN-01','KMSN-02','KMSN-03','KMSN-04'];
+  var billOk = active.filter(function(r) {
+    return billMas.indexOf(String(r.MaLuatKM)) !== -1
+      && parseCurrency_(r.BillToiThieu) <= totalTQ;
+  }).sort(function(a, b) { return parseCurrency_(b.GiaTriGiam) - parseCurrency_(a.GiaTriGiam); });
+  if (billOk.length) applied.push(billOk[0]);
+
+  // 2. Nhóm (KMSN-05~06): chọn mức cao nhất đủ điều kiện
+  var groupMas = ['KMSN-05','KMSN-06'];
+  var groupOk = active.filter(function(r) {
+    return groupMas.indexOf(String(r.MaLuatKM)) !== -1
+      && Number(r.SoKhachToiThieu || 1) <= groupCount;
+  }).sort(function(a, b) { return parseCurrency_(b.GiaTriGiam) - parseCurrency_(a.GiaTriGiam); });
+  if (groupOk.length) applied.push(groupOk[0]);
+
+  // 3. Đối tượng đặc biệt (KMSN-07/08): KMSN-08 ưu tiên nếu đủ nhóm
+  var isStudent = specialType === 'HS/SV/GV' || specialType === 'Du học sinh';
+  if (isStudent) {
+    var r08 = active.find(function(r) { return r.MaLuatKM === 'KMSN-08'; });
+    var r07 = active.find(function(r) { return r.MaLuatKM === 'KMSN-07'; });
+    if (r08 && groupCount >= Number(r08.SoKhachToiThieu || 2)) {
+      applied.push(r08);
+    } else if (r07) {
+      applied.push(r07);
+    }
+  }
+
+  var total = applied.reduce(function(sum, r) { return sum + parseCurrency_(r.GiaTriGiam); }, 0);
+  return { total: total, applied: applied };
+}
+
 // Lấy luật KM
 function handleGetRules() {
   const rules = getSheetData(CONFIG.SHEETS.RULES);
@@ -414,16 +460,19 @@ function handleCalculate(body) {
     });
   });
   
-  // Áp dụng Khuyến mại Sinh nhật (Nếu có sinh nhật và ở OCP thì giảm thêm 5% trên giá sau KM thường quy)
-  let totalSN = totalTQ;
-  let snDiscountTotal = 0;
+  // Áp dụng Khuyến mại Sinh nhật theo tier từ DM_LuatKM
+  var kmSinhNhat = { total: 0, applied: [] };
+  var totalSN = totalTQ;
+  var snDiscountTotal = 0;
   if (hasBirthday && branch === 'OCP') {
-    detailLines.forEach(line => {
-      const snDisc = Math.round(line.lineTQ * 0.05);
-      line.snDiscount = snDisc;
-      snDiscountTotal += snDisc;
-    });
+    kmSinhNhat = getKMSinhNhat_(rules, totalTQ, groupCount || 1, specialType || '');
+    snDiscountTotal = kmSinhNhat.total;
     totalSN = totalTQ - snDiscountTotal;
+    // Phân bổ discount theo tỉ lệ cho từng line
+    detailLines.forEach(function(line) {
+      var ratio = totalTQ > 0 ? line.lineTQ / totalTQ : 0;
+      line.snDiscount = Math.round(snDiscountTotal * ratio);
+    });
   }
   
   // Áp dụng Combo (bỏ qua nếu giỏ hàng có DV bị khóa KMCB-LOCK)
@@ -526,12 +575,16 @@ function handleCalculate(body) {
     { id: "p1", label: "Chỉ áp dụng CTKM thường quy", total: totalTQ, promos: [], warnings: [] }
   ];
   
-  if (hasBirthday && branch === 'OCP') {
+  if (hasBirthday && branch === 'OCP' && snDiscountTotal > 0) {
+    var snPromos = kmSinhNhat.applied.map(function(r) {
+      return r.MaLuatKM + ' – ' + r.TenChuongTrinh.replace(/KM Sinh nhật - /,'') + ': -' + parseCurrency_(r.GiaTriGiam).toLocaleString('vi-VN') + 'đ';
+    });
+    var snMas = kmSinhNhat.applied.map(function(r) { return r.MaLuatKM; }).join(' + ');
     plans.push({
       id: "p2",
-      label: "Áp dụng KM Sinh nhật (Giảm 5% trên giá sau KM)",
+      label: "Áp dụng KM Sinh nhật (" + snMas + ")",
       total: totalSN,
-      promos: ["Giảm 5% Sinh nhật"],
+      promos: snPromos,
       warnings: []
     });
   }
@@ -574,7 +627,10 @@ function handleCalculate(body) {
     gifts,
     warnings,
     comboSuggestions,
-    needsApproval
+    needsApproval,
+    kmsnApplied: kmSinhNhat.applied.map(function(r) {
+      return { ma: r.MaLuatKM, ten: String(r.TenChuongTrinh || ''), giam: parseCurrency_(r.GiaTriGiam) };
+    })
   });
 }
 

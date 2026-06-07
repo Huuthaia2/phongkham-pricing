@@ -104,34 +104,56 @@ async function request(method, path, params = {}, body = null) {
         }
       })
 
+      // KM Sinh nhật theo tier (mock)
+      const hasBirthday = body.hasBirthday
+      const groupCount = body.groupCount || 1
+      const specialType = body.specialType || ''
+      const KMSN_TIERS = [
+        { ma: 'KMSN-04', ten: 'Bill ≥150tr', bill: 150000000, giam: 10000000 },
+        { ma: 'KMSN-03', ten: 'Bill ≥100tr', bill: 100000000, giam: 5000000 },
+        { ma: 'KMSN-02', ten: 'Bill ≥60tr',  bill: 60000000,  giam: 3000000 },
+        { ma: 'KMSN-01', ten: 'Bill ≥30tr',  bill: 30000000,  giam: 1000000 },
+      ]
+      const kmsnApplied = []
+      let snDiscountTotal = 0
+      if (hasBirthday) {
+        const billTier = KMSN_TIERS.find(t => totalTQ >= t.bill)
+        if (billTier) kmsnApplied.push(billTier)
+        if (groupCount >= 3) kmsnApplied.push({ ma: 'KMSN-06', ten: 'Nhóm ≥3', giam: 1000000 })
+        else if (groupCount >= 2) kmsnApplied.push({ ma: 'KMSN-05', ten: 'Nhóm ≥2', giam: 500000 })
+        const isStudent = specialType === 'HS/SV/GV' || specialType === 'Du học sinh'
+        if (isStudent) {
+          if (groupCount >= 2) kmsnApplied.push({ ma: 'KMSN-08', ten: 'Nhóm HS/SV ≥2', giam: 1000000 })
+          else kmsnApplied.push({ ma: 'KMSN-07', ten: 'HS/SV/GV', giam: 500000 })
+        }
+        snDiscountTotal = kmsnApplied.reduce((s, k) => s + k.giam, 0)
+      }
+      const totalSN = totalTQ - snDiscountTotal
+      const snMas = kmsnApplied.map(k => k.ma).join(' + ')
+
       const plans = [
         { id: "p1", label: "Chỉ áp dụng CTKM thường quy TQ-01", total: totalTQ, promos: [], warnings: [] }
       ]
+      if (hasBirthday && snDiscountTotal > 0) {
+        plans.push({ id: "p2", label: `Áp dụng KM Sinh nhật (${snMas})`, total: totalSN,
+          promos: kmsnApplied.map(k => `${k.ma} – ${k.ten}: -${k.giam.toLocaleString('vi-VN')}đ`), warnings: [] })
+      }
       if (appliedComboId) plans.push({ id: "p3", label: "Áp dụng Combo: " + appliedComboName, total: bestComboTotal, promos: ["Combo " + appliedComboName], warnings: [] })
       plans.sort((a, b) => a.total - b.total)
       const bestPlan = plans[0]
       const tienGiam = totalNY - bestPlan.total
       const tiLeGiam = totalNY > 0 ? tienGiam / totalNY : 0
 
-      if (appliedComboId) {
-        const cb = combos.find(c => c.MaCombo === appliedComboId)
-        detailLines.forEach(line => {
-          if (cb.DanhSachDichVu.includes(line.serviceId)) line.comboId = cb.MaCombo
-        })
-      }
-
       return {
         success: true,
-        totalNY,
-        totalTQ,
-        tienGiam,
-        tiLeGiam,
-        bestPlan,
-        allPlans: plans,
-        detailLines,
-        gifts,
+        totalNY, totalTQ,
+        totalSN: hasBirthday ? totalSN : null,
+        tienGiam, tiLeGiam,
+        bestPlan, allPlans: plans,
+        detailLines, gifts,
         warnings: [],
         comboSuggestions,
+        kmsnApplied,
         needsApproval: tiLeGiam > 0.5
       }
     }

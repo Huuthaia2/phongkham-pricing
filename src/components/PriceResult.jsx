@@ -9,7 +9,8 @@ const fmtM = n => ((n||0)/1e6).toFixed(1) + ' tr.đ'
 export default function PriceResult({ result, onBack, onSave, loading }) {
   const { customer, user } = useStore()
   const { totalNY, totalTQ, bestPlan, allPlans, tienGiam, tiLeGiam,
-          needsApproval, gifts, warnings, comboSuggestions, detailLines } = result
+          needsApproval, gifts, warnings, comboSuggestions, detailLines,
+          kmsnApplied } = result
 
   const fmt2 = n => (n||0).toLocaleString('vi-VN')
 
@@ -165,6 +166,20 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
             </div>
           ))}
         </div>
+        {(kmsnApplied||[]).length > 0 && bestPlan?.id === 'p2' && (
+          <div className="mt-2 pt-2 border-t border-white/20 space-y-1">
+            {kmsnApplied.map((k,i) => (
+              <div key={i} className="text-xs text-green-100 flex justify-between">
+                <span>{k.ma}</span>
+                <span className="font-bold">-{(k.giam||0).toLocaleString('vi-VN')}đ</span>
+              </div>
+            ))}
+            <div className="text-xs text-white font-bold flex justify-between border-t border-white/20 pt-1">
+              <span>Tổng giảm sinh nhật</span>
+              <span>-{(kmsnApplied.reduce((s,k)=>s+(k.giam||0),0)).toLocaleString('vi-VN')}đ</span>
+            </div>
+          </div>
+        )}
         {(gifts||[]).length > 0 && (
           <div className="mt-3 pt-3 border-t border-white/20 text-xs flex items-center gap-1.5">
             <Gift className="w-3.5 h-3.5 text-green-200 flex-shrink-0" />
