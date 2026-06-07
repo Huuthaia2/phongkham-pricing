@@ -71,6 +71,8 @@ function doPost(e) {
       result = handleApproveQuote(body);
     } else if (path === 'quotes/deposit') {
       result = handleDepositQuote(body);
+    } else if (path === 'quotes/delete') {
+      result = handleDeleteQuote(body);
     } else if (path === 'calculate') {
       result = handleCalculate(body);
     } else {
@@ -764,6 +766,36 @@ function handleDepositQuote(body) {
   } else {
     return makeError("Không tìm thấy báo giá để ghi nhận đặt cọc", 404);
   }
+}
+
+// Xóa báo giá (chỉ Admin)
+function handleDeleteQuote(body) {
+  const { maBaoGia } = body;
+  if (!maBaoGia) return makeError('Thiếu mã báo giá', 400);
+
+  function deleteRowByKey(sheetName, keyField, keyValue) {
+    const sh = getSheet(sheetName);
+    const headerInfo = getHeaderRowInfo(sh);
+    const headers = headerInfo.headers;
+    const keyIdx = headers.indexOf(keyField);
+    if (keyIdx === -1) return 0;
+    const lastRow = sh.getLastRow();
+    if (lastRow <= headerInfo.index) return 0;
+    const vals = sh.getRange(headerInfo.index + 1, keyIdx + 1, lastRow - headerInfo.index, 1).getValues();
+    let deleted = 0;
+    for (let i = vals.length - 1; i >= 0; i--) {
+      if (String(vals[i][0]) === String(keyValue)) {
+        sh.deleteRow(headerInfo.index + 1 + i);
+        deleted++;
+      }
+    }
+    return deleted;
+  }
+
+  deleteRowByKey(CONFIG.SHEETS.BQ_DETAIL, 'MaBaoGia', maBaoGia);
+  const n = deleteRowByKey(CONFIG.SHEETS.BQ_HEADER, 'MaBaoGia', maBaoGia);
+  if (n > 0) return makeSuccess({ message: 'Đã xóa báo giá ' + maBaoGia });
+  return makeError('Không tìm thấy báo giá: ' + maBaoGia, 404);
 }
 
 // Lấy danh sách báo giá

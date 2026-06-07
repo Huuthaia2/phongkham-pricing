@@ -199,5 +199,6 @@ export const API = {
   createQuote:  (body)   => request('POST', 'quotes',         {}, body),
   approveQuote: (body)   => request('POST', 'quotes/approve', {}, body),
   deposit:      (body)   => request('POST', 'quotes/deposit', {}, body),
+  deleteQuote:  (body)   => request('POST', 'quotes/delete',  {}, body),
   getDashboard: (branch) => request('GET',  'dashboard',      { branch }),
 }

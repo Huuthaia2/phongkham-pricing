@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import logoNgang from '../assets/logo-ngang.png'
 import {
   ArrowLeft, Printer, Loader2, AlertTriangle,
-  Coins, Gift, Zap, Check, X, ChevronRight
+  Coins, Gift, Zap, Check, X, ChevronRight, Trash2
 } from 'lucide-react'
 
 const fmt  = n => (n||0).toLocaleString('vi-VN') + 'đ'
@@ -196,17 +196,32 @@ export default function QuoteDetailPage() {
       <div className="print:!hidden space-y-4">
 
         {/* Toolbar */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button onClick={() => setActiveTab('quotes')}
             className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 font-secondary font-bold transition-all">
             <ArrowLeft className="w-4 h-4" />
             Danh sách
           </button>
-          <button onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-secondary font-bold uppercase tracking-wider transition-all shadow">
-            <Printer className="w-4 h-4" />
-            In báo giá
-          </button>
+          <div className="flex items-center gap-2">
+            {user?.Role === 'Admin' && (
+              <button onClick={async () => {
+                if (!window.confirm(`Xóa báo giá ${quote.MaBaoGia}? Không thể hoàn tác.`)) return
+                try {
+                  await API.deleteQuote({ maBaoGia: quote.MaBaoGia })
+                  setActiveTab('quotes')
+                } catch(e) { alert('Lỗi: ' + e.message) }
+              }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-secondary font-bold uppercase tracking-wider transition-all">
+                <Trash2 className="w-3.5 h-3.5" />
+                Xóa
+              </button>
+            )}
+            <button onClick={handlePrint}
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-secondary font-bold uppercase tracking-wider transition-all shadow">
+              <Printer className="w-4 h-4" />
+              In báo giá
+            </button>
+          </div>
         </div>
 
         {/* Header KH */}
