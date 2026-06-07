@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from 'react'
 import { API } from '../api'
 import { useStore } from '../store'
+import { 
+  FileText, 
+  DollarSign, 
+  CheckCircle, 
+  Percent, 
+  Target, 
+  Clock, 
+  TrendingUp, 
+  Gift, 
+  AlertTriangle, 
+  Plus 
+} from 'lucide-react'
 
 const fmt  = n => (n||0).toLocaleString('vi-VN') + 'đ'
 const fmtM = n => ((n||0)/1e6).toFixed(1) + ' tr.đ'
 const fmtP = n => ((n||0)*100).toFixed(1) + '%'
 
-function KpiCard({ icon, label, value, sub, color }) {
+function KpiCard({ icon: Icon, label, value, sub, color }) {
   const cols = { indigo:'from-indigo-800 to-indigo-600', blue:'from-blue-600 to-blue-500',
     green:'from-emerald-600 to-emerald-500', amber:'from-amber-500 to-amber-400', red:'from-red-600 to-red-500' }
   return (
     <div className={`rounded-2xl p-4 text-white shadow-lg bg-gradient-to-br ${cols[color]||cols.indigo}`}>
-      <div className="text-2xl mb-2">{icon}</div>
+      <div className="text-white/90 mb-2">
+        <Icon className="w-6 h-6" />
+      </div>
       <div className="text-3xl font-secondary font-bold tracking-wide leading-tight">{value}</div>
-      <div className="text-xs opacity-80 mt-1 font-medium">{label}</div>
-      {sub && <div className="text-xs opacity-60 mt-0.5">{sub}</div>}
+      <div className="text-xs opacity-85 mt-1 font-medium uppercase tracking-wider">{label}</div>
+      {sub && <div className="text-[10px] opacity-70 mt-0.5 uppercase tracking-wide">{sub}</div>}
     </div>
   )
 }
@@ -27,6 +41,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const branch = user?.Role === 'Admin' ? '' : user?.CoSo
+    setLoading(true); setError('')
     API.getDashboard(branch)
       .then(d => setData(d))
       .catch(e => setError(e.message))
@@ -44,27 +59,31 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-secondary tracking-wider uppercase font-bold text-slate-800">Tổng quan tháng này</h1>
         <button onClick={()=>setActiveTab('new-quote')}
-          className="bg-brand-gradient text-white text-sm px-4 py-2.5 rounded-xl font-secondary font-bold tracking-wider uppercase shadow hover:opacity-95 transition-all active:scale-95 hover:scale-[1.02]">
-          ➕ Báo giá mới
+          className="bg-brand-gradient text-white text-sm px-4 py-2.5 rounded-xl font-secondary font-bold tracking-wider uppercase shadow hover:opacity-95 transition-all active:scale-95 hover:scale-[1.02] flex items-center gap-1.5">
+          <Plus className="w-4 h-4" />
+          <span>Báo giá mới</span>
         </button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard icon="📄" label="Tổng báo giá"     value={k.totalQuotes||0}          color="indigo" />
-        <KpiCard icon="💰" label="Giá niêm yết"     value={fmtM(k.totalNY)}           color="blue"   sub="triệu đồng" />
-        <KpiCard icon="✅" label="Sau ưu đãi"       value={fmtM(k.totalToiUu)}        color="green"  sub="triệu đồng" />
-        <KpiCard icon="📉" label="Tỷ lệ giảm TB"   value={fmtP(k.avgDiscount)}       color="amber" />
+        <KpiCard icon={FileText} label="Tổng báo giá"     value={k.totalQuotes||0}          color="indigo" />
+        <KpiCard icon={DollarSign} label="Giá niêm yết"     value={fmtM(k.totalNY)}           color="blue"   sub="triệu đồng" />
+        <KpiCard icon={CheckCircle} label="Sau ưu đãi"       value={fmtM(k.totalToiUu)}        color="green"  sub="triệu đồng" />
+        <KpiCard icon={Percent} label="Tỷ lệ giảm TB"   value={fmtP(k.avgDiscount)}       color="amber" />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard icon="🎯" label="Đã chốt"          value={k.chotCount||0}            color="green" />
-        <KpiCard icon="⏳" label="Chờ duyệt"        value={k.waitCount||0}            color="amber" />
-        <KpiCard icon="📈" label="Tỷ lệ chốt"      value={fmtP(k.conversionRate)}    color="blue" />
-        <KpiCard icon="🎁" label="Khách tiết kiệm" value={fmtM(k.totalGiam)}         color="indigo" sub="triệu đồng" />
+        <KpiCard icon={Target} label="Đã chốt"          value={k.chotCount||0}            color="green" />
+        <KpiCard icon={Clock} label="Chờ duyệt"        value={k.waitCount||0}            color="amber" />
+        <KpiCard icon={TrendingUp} label="Tỷ lệ chốt"      value={fmtP(k.conversionRate)}    color="blue" />
+        <KpiCard icon={Gift} label="Khách tiết kiệm" value={fmtM(k.totalGiam)}         color="indigo" sub="triệu đồng" />
       </div>
 
       {(w.missingPrice>0 || w.needVerify>0 || w.pendingApproval>0) && (
          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-           <div className="font-bold text-amber-800 text-sm">⚠️ Cần xử lý</div>
+           <div className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
+             <AlertTriangle className="w-4 h-4 text-amber-600" />
+             <span>Cần xử lý</span>
+           </div>
            {w.missingPrice>0    && <div className="text-sm text-amber-700">• {w.missingPrice} dịch vụ chưa có giá – không tính được</div>}
            {w.needVerify>0      && <div className="text-sm text-amber-700">• {w.needVerify} dịch vụ đang chờ xác minh KM</div>}
            {w.pendingApproval>0 && <button onClick={()=>setActiveTab('quotes')} className="text-sm text-red-700 font-semibold hover:underline block">• {w.pendingApproval} báo giá đang chờ duyệt →</button>}
