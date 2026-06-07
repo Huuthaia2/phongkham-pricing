@@ -79,7 +79,7 @@ function ComboCard({ result, services, cart, isApplied }) {
                   Tiết kiệm {fmt(preview.saving)}
                 </span>
               )}
-              {preview.label && (
+              {preview.label && !allMet && (
                 <span className="text-xs text-slate-400">{preview.label}</span>
               )}
             </div>
@@ -113,8 +113,14 @@ function ComboHints({ results, services, cart, appliedComboId }) {
   const [showAll, setShowAll] = useState(false)
   if (!results.length) return null
 
-  const visible = showAll ? results : results.slice(0, COMBO_PREVIEW_COUNT)
-  const hidden  = results.length - COMBO_PREVIEW_COUNT
+  // Applied combo luôn lên đầu
+  const sorted = [...results].sort((a, b) => {
+    if (a.combo.MaCombo === appliedComboId) return -1
+    if (b.combo.MaCombo === appliedComboId) return 1
+    return 0
+  })
+  const visible = showAll ? sorted : sorted.slice(0, COMBO_PREVIEW_COUNT)
+  const hidden  = sorted.length - COMBO_PREVIEW_COUNT
 
   return (
     <div className="space-y-2">
@@ -128,6 +134,7 @@ function ComboHints({ results, services, cart, appliedComboId }) {
         <ComboCard key={r.combo.MaCombo} result={r} services={services} cart={cart}
           isApplied={r.combo.MaCombo === appliedComboId} />
       ))}
+
       {hidden > 0 && !showAll && (
         <button
           onClick={() => setShowAll(true)}
