@@ -37,7 +37,7 @@ function DepositForm({ maBaoGia, onDone, user }) {
 }
 
 export default function QuoteListPage() {
-  const { user, setActiveTab, setCurrentQuoteId } = useStore()
+  const { user, activeTab, setActiveTab, setCurrentQuoteId } = useStore()
   const [quotes, setQuotes]   = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState('')
@@ -62,6 +62,7 @@ export default function QuoteListPage() {
   }, [user])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { if (activeTab === 'quotes') load() }, [activeTab])
 
   async function handleApprove(maBaoGia, decision) {
     if (!window.confirm(`${decision==='approve'?'Duyệt':'Từ chối'} báo giá ${maBaoGia}?`)) return
