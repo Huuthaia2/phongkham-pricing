@@ -3,6 +3,7 @@ import { API } from '../api'
 import { useStore } from '../store'
 import ServicePicker from '../components/ServicePicker'
 import PriceResult from '../components/PriceResult'
+import { CakeSlice, Users, AlertTriangle, Loader2 } from 'lucide-react'
 
 function CustomerForm({ onNext }) {
   const { customer, setCustomer, user } = useStore()
@@ -49,12 +50,18 @@ function CustomerForm({ onNext }) {
               <div className={`w-11 h-6 rounded-full transition-colors ${customer.hasBirthday?'bg-pink-500':'bg-slate-300'}`} />
               <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${customer.hasBirthday?'left-[22px]':'left-0.5'}`} />
             </div>
-            <span className="text-sm text-slate-700">🎂 KH có sinh nhật trong tháng (chỉ OCP)</span>
+            <span className="text-sm text-slate-700 flex items-center gap-1.5">
+              <CakeSlice className="w-4 h-4 text-pink-500" />
+              <span>KH có sinh nhật trong tháng (chỉ OCP)</span>
+            </span>
           </label>
         )}
 
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-600 min-w-max">👥 Số khách đi cùng:</span>
+          <span className="text-sm text-slate-600 min-w-max flex items-center gap-1.5">
+            <Users className="w-4 h-4 text-slate-500" />
+            <span>Số khách đi cùng:</span>
+          </span>
           <button className="w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-700 hover:bg-slate-200"
             onClick={()=>setCustomer({groupCount:Math.max(1,customer.groupCount-1)})}>−</button>
           <span className="font-bold w-6 text-center text-slate-800">{customer.groupCount}</span>
@@ -165,7 +172,12 @@ export default function NewQuotePage() {
         ))}
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-medium">⚠️ {error}</div>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-medium flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {step === 1 && <CustomerForm onNext={() => setStep(2)} />}
 
@@ -179,8 +191,13 @@ export default function NewQuotePage() {
                 ← Quay lại
               </button>
               <button onClick={handleCalculate} disabled={!cart.length || loading}
-                className="flex-1 py-3.5 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase disabled:opacity-40 hover:opacity-95 transition-all shadow-lg shadow-brand-orange/30 active:scale-95">
-                {loading ? '⏳ Đang tính...' : `Tính giá ${cart.length} dịch vụ →`}
+                className="flex-1 py-3.5 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase disabled:opacity-40 hover:opacity-95 transition-all shadow-lg shadow-brand-orange/30 active:scale-95 flex items-center justify-center gap-1.5">
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang tính...</span>
+                  </>
+                ) : `Tính giá ${cart.length} dịch vụ →`}
               </button>
             </div>
           </div>

@@ -127,15 +127,31 @@ export default function QuoteListPage() {
               </div>
             </div>
 
-            {q.CanhBao && <div className="mt-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">⚠️ {q.CanhBao}</div>}
-            {q.QuaTangTong && <div className="mt-1 text-xs text-green-700">🎁 {q.QuaTangTong}</div>}
+             {q.CanhBao && (
+              <div className="mt-2 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 flex items-start gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <span>{q.CanhBao}</span>
+              </div>
+            )}
+            {q.QuaTangTong && (
+              <div className="mt-1 text-xs text-green-700 flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                <span>{q.QuaTangTong}</span>
+              </div>
+            )}
 
             {canApprove && q.TrangThaiBaoGia === 'Chờ duyệt' && (
               <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
                 <button onClick={()=>handleApprove(q.MaBaoGia,'approve')}
-                  className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-green-700 transition-all">✅ Duyệt</button>
+                  className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-green-700 transition-all flex items-center justify-center gap-1.5">
+                  <Check className="w-4 h-4" />
+                  <span>Duyệt</span>
+                </button>
                 <button onClick={()=>handleApprove(q.MaBaoGia,'reject')}
-                  className="flex-1 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-red-200 transition-all">❌ Từ chối</button>
+                  className="flex-1 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-red-200 transition-all flex items-center justify-center gap-1.5">
+                  <X className="w-4 h-4" />
+                  <span>Từ chối</span>
+                </button>
               </div>
             )}
 
@@ -144,8 +160,9 @@ export default function QuoteListPage() {
             )}
 
             {q.DaDatCoc === 'Đã cọc' && (
-              <div className="mt-2 text-xs text-green-700 font-semibold bg-green-50 rounded-lg px-3 py-2">
-                💰 Đã đặt cọc: {Number(q.SoTienCoc||0).toLocaleString('vi-VN')}đ
+              <div className="mt-2 text-xs text-green-700 font-semibold bg-green-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                <Coins className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                <span>Đã đặt cọc: {Number(q.SoTienCoc||0).toLocaleString('vi-VN')}đ</span>
               </div>
             )}
           </div>
