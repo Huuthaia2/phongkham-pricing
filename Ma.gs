@@ -365,7 +365,12 @@ function handleCalculate(body) {
   
   const services = getSheetData(CONFIG.SHEETS.SERVICES);
   const combos = handleGetCombos().combos;
-  
+  const rules  = getSheetData(CONFIG.SHEETS.RULES);
+  const lockedIds = rules
+    .filter(r => String(r.MaLuatKM || '').indexOf('KMCB-LOCK-') === 0)
+    .map(r => 'DV-' + String(r.MaLuatKM).replace('KMCB-LOCK-', ''));
+  const cartIsLocked = items.some(i => lockedIds.indexOf(i.serviceId) !== -1);
+
   let totalNY = 0;
   let totalTQ = 0;
   const detailLines = [];
@@ -421,7 +426,7 @@ function handleCalculate(body) {
     totalSN = totalTQ - snDiscountTotal;
   }
   
-  // Áp dụng Combo
+  // Áp dụng Combo (bỏ qua nếu giỏ hàng có DV bị khóa KMCB-LOCK)
   var activeCombs = combos.filter(function(c) { return c.TrangThai === 'Đang áp dụng'; });
   var cart = detailLines.map(function(d) { return { serviceId: d.serviceId, quantity: d.quantity }; });
 
@@ -430,7 +435,11 @@ function handleCalculate(body) {
   var appliedComboName = '';
   var appliedComboResult = null;
 
-  activeCombs.forEach(function(cb) {
+  if (cartIsLocked) {
+    warnings.push('Giỏ hàng có DV khóa cộng dồn — chỉ áp dụng CTKM thường quy TQ-01');
+  }
+
+  if (!cartIsLocked) activeCombs.forEach(function(cb) {
     var mr = matchCombo_(cb, cart, services);
     if (!mr || !mr.allMet) return;
 

@@ -125,21 +125,27 @@ function ComboHints({ results, services, cart }) {
 // ── ServicePicker chính ───────────────────────────────────────────────────────
 export default function ServicePicker() {
   const { cart, addToCart, removeFromCart, updateQty } = useStore()
-  const [services, setServices] = useState([])
-  const [combos, setCombos]     = useState([])
-  const [groups, setGroups]     = useState([])
-  const [group, setGroup]       = useState('Tất cả')
-  const [search, setSearch]     = useState('')
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState('')
+  const [services, setServices]   = useState([])
+  const [combos, setCombos]       = useState([])
+  const [groups, setGroups]       = useState([])
+  const [lockedIds, setLockedIds] = useState([])
+  const [group, setGroup]         = useState('Tất cả')
+  const [search, setSearch]       = useState('')
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState('')
   const [displayCount, setDisplayCount] = useState(25)
 
   useEffect(() => {
-    Promise.all([API.getServices(), API.getCombos()])
-      .then(([sd, cd]) => {
+    Promise.all([API.getServices(), API.getCombos(), API.getRules()])
+      .then(([sd, cd, rd]) => {
         setServices(sd.services || [])
         setGroups(sd.groups || [])
         setCombos((cd.combos || []).filter(c => c.TrangThai === 'Đang áp dụng'))
+        // Derive locked DV IDs từ KMCB-LOCK-XXX → DV-XXX
+        const locked = (rd.rules || [])
+          .filter(r => String(r.MaLuatKM || '').startsWith('KMCB-LOCK-'))
+          .map(r => 'DV-' + String(r.MaLuatKM).replace('KMCB-LOCK-', ''))
+        setLockedIds(locked)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
@@ -168,8 +174,13 @@ export default function ServicePicker() {
   const displayed = useMemo(() => filtered.slice(0, displayCount), [filtered, displayCount])
   const cartTotal = cart.reduce((s, i) => s + (Number(i._svc?.GiaSauKM) || 0) * i.quantity, 0)
 
+  const cartIsLocked = useMemo(
+    () => cart.some(i => lockedIds.includes(i.serviceId)),
+    [cart, lockedIds]
+  )
+
   const comboResults = useMemo(() => {
-    if (!cart.length || !combos.length) return []
+    if (!cart.length || !combos.length || cartIsLocked) return []
     return combos
       .map(cb => matchCombo(cb, cart, services))
       .filter(r => r && (r.allMet || r.partial))
