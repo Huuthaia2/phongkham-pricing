@@ -185,13 +185,19 @@ function updateRow(sheetName, keyField, keyValue, updates) {
 // 3. CÁC HÀM XỬ LÝ LOGIC NGHIỆP VỤ
 // ==========================================
 
-// Lấy danh sách dịch vụ
+// Lấy danh sách dịch vụ (join thêm DM_LuatKM để lấy NhomKM, ApDungDongThoi_TQ)
 function handleGetServices(params) {
   const services = getSheetData(CONFIG.SHEETS.SERVICES);
+  const rules    = getSheetData(CONFIG.SHEETS.RULES);
   const groups = [];
   services.forEach(s => {
     if (s.NhomDichVu && groups.indexOf(s.NhomDichVu) === -1) {
       groups.push(s.NhomDichVu);
+    }
+    const rule = rules.find(r => String(r.MaDichVu) === String(s.MaDichVu));
+    if (rule) {
+      if (rule.NhomKM          !== undefined) s.NhomKM          = rule.NhomKM;
+      if (rule.ApDungDongThoi_TQ !== undefined) s.ApDungDongThoi_TQ = rule.ApDungDongThoi_TQ;
     }
   });
   return makeSuccess({ services, groups });
