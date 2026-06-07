@@ -30,7 +30,7 @@ export default function Layout({ children }) {
           </button>
         </div>
       </header>
-      <div className="hidden sm:flex">
+      <div className="hidden sm:flex print:block">
         <nav className="fixed left-0 top-14 bottom-0 w-16 bg-indigo-900 flex flex-col items-center pt-4 gap-1 z-30 no-print">
           {visible.map(n => {
             const Icon = n.icon
@@ -45,11 +45,11 @@ export default function Layout({ children }) {
             )
           })}
         </nav>
-        <main className="flex-1 ml-16 pb-6">
+        <main className="flex-1 ml-16 pb-6 print:ml-0">
           <div className="max-w-screen-lg mx-auto px-4 pt-4">{children}</div>
         </main>
       </div>
-      <main className="sm:hidden pb-20 px-3 pt-3">{children}</main>
+      <main className="sm:hidden print:hidden pb-20 px-3 pt-3">{children}</main>
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex z-40 no-print shadow-lg">
         {visible.map(n => {
           const Icon = n.icon

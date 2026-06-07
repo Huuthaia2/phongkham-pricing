@@ -11,16 +11,109 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
   const { totalNY, totalTQ, bestPlan, allPlans, tienGiam, tiLeGiam,
           needsApproval, gifts, warnings, comboSuggestions, detailLines } = result
 
+  const fmt2 = n => (n||0).toLocaleString('vi-VN')
+
   return (
     <div className="space-y-4 animate-slideUp">
-      {/* Print-only brand header */}
-      <div className="hidden print:flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
-        <img src={logoNgang} alt="Logo" className="h-12 object-contain" />
-        <div className="text-right">
-          <div className="font-logo text-base tracking-wider uppercase text-slate-800">Báo Giá Dịch Vụ</div>
-          <div className="text-xs font-secondary tracking-wide text-slate-500 uppercase mt-1">{customer.branch} · Ngày tư vấn: {customer.consultDate}</div>
+      {/* ========== PHẦN IN (CHỈ HIỆN KHI IN) ========== */}
+      <div className="hidden print:block text-[13px] text-slate-800 font-sans">
+
+        {/* Header */}
+        <div className="flex items-start justify-between pb-3 border-b-2 border-indigo-700 mb-4">
+          <div className="flex items-center gap-3">
+            <img src={logoNgang} alt="Logo" className="h-14 object-contain" />
+          </div>
+          <div className="text-right">
+            <div className="text-xl font-bold uppercase tracking-widest text-indigo-800">Báo Giá Dịch Vụ</div>
+            <div className="text-xs text-slate-500 mt-1">Địa chỉ: 123 Đường ABC, Hà Nội &nbsp;|&nbsp; ĐT: 1900 xxxx &nbsp;|&nbsp; Website: phongkham.vn</div>
+          </div>
         </div>
+
+        {/* Thông tin khách hàng */}
+        <div className="mb-4 rounded border border-indigo-200 overflow-hidden">
+          <div className="bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5">Thông tin khách hàng</div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 px-4 py-3 text-[12.5px]">
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Mã báo giá:</span><span className="font-bold text-indigo-700">---</span></div>
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Ngày tư vấn:</span><span className="font-semibold">{customer.consultDate}</span></div>
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Khách hàng:</span><span className="font-bold">{customer.name}</span></div>
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Cơ sở:</span><span className="font-semibold">{customer.branch === 'OCP' ? 'OceanPark (OCP)' : 'Hoàng Quốc Việt (HQV)'}</span></div>
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Số điện thoại:</span><span className="font-semibold">{customer.phone || '---'}</span></div>
+            <div className="flex gap-1"><span className="text-slate-500 min-w-[100px]">Tư vấn viên:</span><span className="font-semibold">{user?.HoTen || '---'}</span></div>
+            <div className="flex gap-1 col-span-2"><span className="text-slate-500 min-w-[100px]">Hiệu lực báo giá:</span><span className="font-semibold">7 ngày kể từ ngày tư vấn</span></div>
+          </div>
+        </div>
+
+        {/* Chi tiết dịch vụ */}
+        <div className="mb-4 rounded border border-indigo-200 overflow-hidden">
+          <div className="bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5">Chi tiết dịch vụ</div>
+          <div className="divide-y divide-slate-100">
+            {(detailLines||[]).map((line, i) => (
+              <div key={i} className="flex items-center justify-between px-4 py-2 text-[12.5px]">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-slate-400 font-mono text-xs w-5 text-center">{i+1}</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-800">{line.serviceName}</div>
+                    {line.comboId && <div className="text-xs text-amber-600">Combo: {line.comboId}</div>}
+                    {line.gift && <div className="text-xs text-green-600">🎁 {line.gift}</div>}
+                  </div>
+                  {line.quantity > 1 && <span className="text-xs text-slate-400 mr-3">×{line.quantity}</span>}
+                </div>
+                <div className="text-right ml-4 shrink-0">
+                  <div className="text-xs text-slate-400 line-through">{fmt2(line.lineNY)}đ</div>
+                  <div className="font-bold text-indigo-700">{fmt2(line.lineTQ)}đ</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tổng kết */}
+        <div className="mb-4 rounded border border-indigo-200 overflow-hidden">
+          <div className="bg-indigo-700 text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5">Tổng kết</div>
+          <div className="px-4 py-3 space-y-1.5 text-[12.5px]">
+            <div className="flex justify-between"><span className="text-slate-500">Tổng giá niêm yết:</span><span>{fmt2(totalNY)}đ</span></div>
+            <div className="flex justify-between"><span className="text-slate-500">Tổng giá sau CTKM thường quy:</span><span>{fmt2(totalTQ)}đ</span></div>
+            <div className="flex justify-between"><span className="text-slate-500">Chương trình KM tốt nhất áp dụng:</span><span className="font-semibold text-right max-w-[50%]">{bestPlan?.label}</span></div>
+            <div className="flex justify-between border-t border-indigo-200 pt-2 mt-1">
+              <span className="font-bold text-indigo-800 text-base">💰 GIÁ SAU ƯU ĐÃI TỐT NHẤT:</span>
+              <span className="font-bold text-indigo-800 text-base">{fmt2(bestPlan?.total)}đ</span>
+            </div>
+            <div className="flex justify-between text-xs text-slate-500"><span>Tổng tiền được giảm:</span><span className="text-green-600 font-semibold">{fmt2(tienGiam)}đ</span></div>
+            <div className="flex justify-between text-xs text-slate-500"><span>Tỷ lệ giảm thực tế:</span><span className="text-green-600 font-semibold">{(tiLeGiam*100).toFixed(1)}%</span></div>
+            {(gifts||[]).length > 0 && (
+              <div className="flex justify-between text-xs text-slate-500"><span>Quà tặng đi kèm:</span><span className="text-green-600 font-semibold">{gifts.join(' · ')}</span></div>
+            )}
+          </div>
+        </div>
+
+        {/* Điều kiện & Chữ ký — giữ cùng nhau, không tách trang */}
+        <div className="break-inside-avoid">
+          <div className="mb-3 rounded border border-slate-200 px-4 py-2.5 text-[11px] text-slate-500 space-y-0.5">
+            <div className="font-bold text-slate-600 uppercase tracking-wider text-[10px] mb-1">Điều kiện áp dụng &amp; Ghi chú</div>
+            <div>• Báo giá có hiệu lực 7 ngày kể từ ngày tư vấn. Sau thời hạn này, vui lòng liên hệ lại để cập nhật giá.</div>
+            <div>• Giá trên đã bao gồm CTKM thường quy TQ-01 đang áp dụng tại hệ thống.</div>
+            <div>• KM Sinh nhật chỉ áp dụng tại CS OceanPark và không cộng dồn với Combo Siêu Hời.</div>
+            <div>• Để chốt dịch vụ, khách hàng cần đặt cọc theo quy định của phòng khám.</div>
+            <div>• Mọi thắc mắc vui lòng liên hệ tư vấn viên phụ trách.</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 mt-8 text-center text-[12px]">
+            <div>
+              <div className="font-semibold text-slate-700 mb-12">Khách hàng xác nhận</div>
+              <div className="border-t border-slate-300 pt-2 text-slate-400 text-xs italic">(Ký và ghi rõ họ tên)</div>
+            </div>
+            <div>
+              <div className="font-semibold text-slate-700 mb-12">Tư vấn viên</div>
+              <div className="border-t border-slate-300 pt-2 text-slate-400 text-xs italic">(Ký và ghi rõ họ tên)</div>
+            </div>
+          </div>
+        </div>
+
       </div>
+      {/* ========== HẾT PHẦN IN ========== */}
+
+      {/* ========== PHẦN HIỆN THỊ TRÊN MÀN HÌNH (ẨN KHI IN) ========== */}
+      <div className="print:hidden">
 
       {/* KH header */}
       <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl overflow-hidden text-white shadow-lg">
@@ -195,6 +288,9 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
           )}
         </button>
       </div>
+
+      </div>
+      {/* ========== HẾT PHẦN MÀN HÌNH ========== */}
     </div>
   )
 }

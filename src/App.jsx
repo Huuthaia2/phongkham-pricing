@@ -15,9 +15,11 @@ export default function App() {
     <Layout>
       {activeTab === 'dashboard' && <DashboardPage />}
       {activeTab === 'new-quote' && <NewQuotePage />}
-      {activeTab === 'quotes'    && <QuoteListPage />}
-      {activeTab === 'detail'    && <QuoteDetailPage />}
+      {/* Giữ quotes & detail luôn mounted — tránh reload khi back */}
+      <div className={`no-print ${activeTab !== 'quotes' ? 'hidden' : ''}`}><QuoteListPage /></div>
+      <div className={activeTab !== 'detail' ? 'hidden' : ''}><QuoteDetailPage /></div>
       {activeTab === 'admin'     && <AdminPage />}
     </Layout>
   )
 }
+

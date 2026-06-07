@@ -29,7 +29,11 @@ button, a, select, input, textarea, [role="button"] {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 @keyframes slideUp { from { opacity:0; transform:translateY(10px);} to {opacity:1;transform:translateY(0);} }
 .animate-slideUp { animation: slideUp 0.22s ease-out; }
-@media print { .no-print{display:none!important;} body{background:white!important;} }
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; margin: 0 !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 
 /* Custom brand gradients */
 .bg-brand-gradient {
