@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { API } from '../api'
 import { useStore } from '../store'
+import { Loader2, Coins, AlertTriangle } from 'lucide-react'
 
 const fmt = n => ((n||0)/1e6).toFixed(1) + ' tr.đ'
 const STATUS = {
@@ -27,8 +28,9 @@ function DepositForm({ maBaoGia, onDone, user }) {
       <input className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
         placeholder="Số tiền cọc (VND)" value={amount} onChange={e=>setAmount(e.target.value)} />
       <button onClick={go} disabled={loading}
-        className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 disabled:opacity-50">
-        {loading?'...':'💰 Ghi cọc'}
+        className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 disabled:opacity-50 flex items-center gap-1">
+        {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Coins className="w-3.5 h-3.5" />}
+        <span>Ghi cọc</span>
       </button>
     </div>
   )
@@ -91,8 +93,18 @@ export default function QuoteListPage() {
         ))}
       </div>
 
-      {error   && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm">⚠️ {error}</div>}
-      {loading && <div className="text-center py-12 text-slate-400 text-sm">Đang tải...</div>}
+      {error   && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+          <div className="text-sm font-medium">Đang tải danh sách...</div>
+        </div>
+      )}
       {!loading && !filtered.length && <div className="text-center py-12 text-slate-400 text-sm">Chưa có báo giá nào</div>}
 
       <div className="space-y-2">

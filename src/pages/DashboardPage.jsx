@@ -11,7 +11,8 @@ import {
   TrendingUp, 
   Gift, 
   AlertTriangle, 
-  Plus 
+  Plus,
+  Loader2
 } from 'lucide-react'
 
 const fmt  = n => (n||0).toLocaleString('vi-VN') + 'đ'
@@ -48,8 +49,20 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-48 text-slate-400"><div className="text-center"><div className="text-4xl mb-2 animate-spin">⚙️</div><div className="text-sm">Đang tải...</div></div></div>
-  if (error) return <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-700 text-sm">⚠️ {error}</div>
+  if (loading) return (
+    <div className="flex items-center justify-center h-48 text-slate-400">
+      <div className="text-center flex flex-col items-center gap-2">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-650" />
+        <div className="text-sm font-medium">Đang tải dữ liệu...</div>
+      </div>
+    </div>
+  )
+  if (error) return (
+    <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-700 text-sm flex items-center gap-2">
+      <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+      <span>{error}</span>
+    </div>
+  )
 
   const k = data?.kpis || {}
   const w = data?.warnings || {}
