@@ -464,7 +464,7 @@ function handleCalculate(body) {
   var kmSinhNhat = { total: 0, applied: [] };
   var totalSN = totalTQ;
   var snDiscountTotal = 0;
-  if (hasBirthday && branch === 'OCP') {
+  if (hasBirthday && branch === 'CS-03') {
     kmSinhNhat = getKMSinhNhat_(rules, totalTQ, groupCount || 1, specialType || '');
     snDiscountTotal = kmSinhNhat.total;
     totalSN = totalTQ - snDiscountTotal;
@@ -565,7 +565,7 @@ function handleCalculate(body) {
     }
   }
   
-  if (hasBirthday && branch === 'OCP' && totalSN < bestComboTotal) {
+  if (hasBirthday && branch === 'CS-03' && totalSN < bestComboTotal) {
     detailLines.forEach(line => {
       line.optimalPrice = line.lineTQ - line.snDiscount;
     });
@@ -575,7 +575,7 @@ function handleCalculate(body) {
     { id: "p1", label: "Chỉ áp dụng CTKM thường quy", total: totalTQ, promos: [], warnings: [] }
   ];
   
-  if (hasBirthday && branch === 'OCP' && snDiscountTotal > 0) {
+  if (hasBirthday && branch === 'CS-03' && snDiscountTotal > 0) {
     var snPromos = kmSinhNhat.applied.map(function(r) {
       return r.MaLuatKM + ' – ' + r.TenChuongTrinh.replace(/KM Sinh nhật - /,'') + ': -' + parseCurrency_(r.GiaTriGiam).toLocaleString('vi-VN') + 'đ';
     });
@@ -617,7 +617,7 @@ function handleCalculate(body) {
   return makeSuccess({
     totalNY,
     totalTQ,
-    totalSN: hasBirthday && branch === 'OCP' ? totalSN : null,
+    totalSN: hasBirthday && branch === 'CS-03' ? totalSN : null,
     bestComboTotal: appliedComboId ? bestComboTotal : null,
     tienGiam,
     tiLeGiam,

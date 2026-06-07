@@ -30,8 +30,11 @@ function CustomerForm({ onNext }) {
           <label className="text-xs font-secondary tracking-wider text-slate-500 uppercase">Cơ sở</label>
           <select className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={customer.branch} onChange={e=>setCustomer({branch:e.target.value})}>
-            <option value="OCP">OceanPark (OCP)</option>
-            <option value="HQV">Hoàng Quốc Việt (HQV)</option>
+            <option value="CS-01">Cơ sở Hoàng Quốc Việt</option>
+            <option value="CS-02">Cơ sở Văn Quán</option>
+            <option value="CS-03">Cơ sở Ocean Park</option>
+            <option value="CS-04">Cơ sở Hạ Long</option>
+            <option value="CS-05">Cơ sở Hải Phòng</option>
           </select>
         </div>
         <div>
@@ -44,7 +47,7 @@ function CustomerForm({ onNext }) {
       <div className="border-t border-slate-100 pt-3 space-y-3">
         <div className="text-xs font-secondary tracking-wider font-bold text-slate-400 uppercase">Điều kiện KM đặc biệt</div>
 
-        {customer.branch === 'OCP' && (
+        {customer.branch === 'CS-03' && (
           <label className="flex items-center gap-3 cursor-pointer">
             <div className="relative w-11 h-6 flex-shrink-0" onClick={()=>setCustomer({hasBirthday:!customer.hasBirthday})}>
               <div className={`w-11 h-6 rounded-full transition-colors ${customer.hasBirthday?'bg-pink-500':'bg-slate-300'}`} />
@@ -52,7 +55,7 @@ function CustomerForm({ onNext }) {
             </div>
             <span className="text-sm text-slate-700 flex items-center gap-1.5">
               <CakeSlice className="w-4 h-4 text-pink-500" />
-              <span>KH có sinh nhật trong tháng (chỉ OCP)</span>
+              <span>KH có sinh nhật trong tháng (chỉ Ocean Park)</span>
             </span>
           </label>
         )}

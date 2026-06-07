@@ -19,14 +19,14 @@ export const useStore = create(
 
       // ── Customer form ─────────────────────────────────
       customer: {
-        name: '', phone: '', branch: 'OCP',
+        name: '', phone: '', branch: 'CS-01',
         consultDate: today(), hasBirthday: false,
         groupCount: 1, specialType: 'none', note: '',
       },
       setCustomer: (updates) => set(s => ({ customer: { ...s.customer, ...updates } })),
       resetCustomer: () => set({
         customer: {
-          name: '', phone: '', branch: 'OCP',
+          name: '', phone: '', branch: 'CS-01',
           consultDate: today(), hasBirthday: false,
           groupCount: 1, specialType: 'none', note: '',
         }
