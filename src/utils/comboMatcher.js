@@ -73,21 +73,12 @@ function matchCondition(cond, cart, services, excludeIds = []) {
       return { met: matched.length >= cond.min, matched, missing: cond.ids.filter(id => !cartIds.includes(id)) }
     }
     case 'ANY_TQ01': {
+      // TQ-01 áp dụng cho tất cả DV có GiaSauKM — chỉ cần check ngưỡng giá
       const matched = cart
         .filter(i => {
           if (excludeIds.includes(i.serviceId)) return false
           const svc = services.find(s => s.MaDichVu === i.serviceId)
-          const ok = svc &&
-            String(svc.NhomKM || '') === 'TQ-01' &&
-            String(svc.ApDungDongThoi_TQ || '') === 'Có' &&
-            Number(svc.GiaSauKM) >= cond.minPrice
-          if (!ok && svc) console.log('[ANY_TQ01 FAIL]', svc.TenDichVu, {
-            NhomKM: svc.NhomKM,
-            ApDungDongThoi_TQ: svc.ApDungDongThoi_TQ,
-            GiaSauKM: svc.GiaSauKM,
-            minPrice: cond.minPrice
-          })
-          return ok
+          return svc && Number(svc.GiaSauKM) >= cond.minPrice
         })
         .map(i => i.serviceId)
       return { met: matched.length >= 1, matched, missing: [] }
