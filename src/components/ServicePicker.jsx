@@ -212,32 +212,47 @@ export default function ServicePicker() {
       })
   }, [cart, combos, services])
 
-  const bestApplied = useMemo(() => {
-    let best = null, bestSaving = 0
-    comboResults.filter(r => r.allMet).forEach(r => {
+  // Stack tất cả allMet combos không xung đột target service
+  const appliedCombos = useMemo(() => {
+    const allMets = comboResults.filter(r => r.allMet)
+    if (!allMets.length) return null
+
+    // Tính saving và targetIds cho mỗi combo
+    const candidates = allMets.map(r => {
       const p = calcComboPreview(r, cart, services)
-      if (!p) return
-      let effectiveTotal = cartTotal
+      if (!p) return null
+      let saving = 0
+      let targetIds = []
       if (r.combo.LoaiGia === 'GIA_TONG') {
-        if (!p.total || p.total <= 0) return  // GiaCombo chưa set, bỏ qua
-        const comboIds = r.conditionResults
+        if (!p.total || p.total <= 0) return null
+        targetIds = r.conditionResults
           .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
           .flatMap(c => c.matched)
         const nonComboTQ = cart.reduce((sum, i) => {
-          if (comboIds.includes(i.serviceId)) return sum
+          if (targetIds.includes(i.serviceId)) return sum
           return sum + Number(i._svc?.GiaSauKM || 0) * i.quantity
         }, 0)
-        effectiveTotal = p.total + nonComboTQ
-      } else if (p.saving > 0) {
-        effectiveTotal = cartTotal - p.saving
+        saving = cartTotal - (p.total + nonComboTQ)
+      } else {
+        saving = p.saving || 0
+        targetIds = r.targetServices || []
       }
-      const saving = cartTotal - effectiveTotal
-      if (saving > bestSaving) {
-        bestSaving = saving
-        best = { combo: r.combo, effectiveTotal, saving }
-      }
-    })
-    return best
+      if (saving <= 0) return null
+      return { combo: r.combo, saving, targetIds }
+    }).filter(Boolean).sort((a, b) => b.saving - a.saving)
+
+    // Greedy: apply combos không xung đột target
+    const claimed = new Set()
+    const applied = []
+    let totalSaving = 0
+    for (const c of candidates) {
+      if (c.targetIds.some(id => claimed.has(id))) continue
+      c.targetIds.forEach(id => claimed.add(id))
+      applied.push(c)
+      totalSaving += c.saving
+    }
+    if (!applied.length) return null
+    return { applied, effectiveTotal: cartTotal - totalSaving, saving: totalSaving }
   }, [comboResults, cart, services, cartTotal])
 
   if (loading) return (
@@ -276,13 +291,16 @@ export default function ServicePicker() {
       {/* Tổng giỏ */}
       {cart.length > 0 && (
         <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
-          bestApplied ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+          appliedCombos ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
         }`}>
           ✓ Đã chọn {cart.length} dịch vụ
-          {bestApplied ? (
+          {appliedCombos ? (
             <>
-              {' '}· Tổng TQ: <span>{bestApplied.effectiveTotal.toLocaleString('vi-VN')}đ</span>
-              <span className="text-green-600 ml-1 normal-case font-bold">↓ Tiết kiệm {bestApplied.saving.toLocaleString('vi-VN')}đ</span>
+              {' '}· Tổng TQ: <span>{appliedCombos.effectiveTotal.toLocaleString('vi-VN')}đ</span>
+              <span className="text-green-600 ml-1 normal-case font-bold">
+                ↓ Tiết kiệm {appliedCombos.saving.toLocaleString('vi-VN')}đ
+                {appliedCombos.applied.length > 1 && ` (${appliedCombos.applied.length} combo)`}
+              </span>
             </>
           ) : (
             <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
