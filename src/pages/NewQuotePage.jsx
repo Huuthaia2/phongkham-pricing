@@ -141,7 +141,7 @@ export default function NewQuotePage() {
         items: cart.map(i => ({ serviceId: i.serviceId, quantity: i.quantity })),
         calcResult,
       })
-      alert(`✅ Đã lưu báo giá ${result.maBaoGia}${result.needsApproval ? '\n⚠️ Cần Quản lý duyệt (giảm >50%)' : ''}`)
+      alert(`✅ Đã lưu báo giá ${result.maBaoGia}${result.row ? ` (Dòng ${result.row})` : ''}${result.needsApproval ? '\n⚠️ Cần Quản lý duyệt (giảm >50%)' : ''}`)
       clearCart(); setCalcResult(null); setStep(1)
       setActiveTab('quotes')
     } catch (err) {
