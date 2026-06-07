@@ -15,7 +15,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
   const fmt2 = n => (n||0).toLocaleString('vi-VN')
 
   return (
-    <div className="space-y-4 animate-slideUp">
+    <div className="space-y-5 animate-slideUp">
       {/* ========== PHẦN IN (CHỈ HIỆN KHI IN) ========== */}
       <div className="hidden print:block text-[13px] text-slate-800 font-sans">
 
@@ -148,7 +148,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       )}
 
       {/* Best plan */}
-      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 text-white shadow-xl shadow-green-200">
+      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl shadow-green-200">
         <div className="flex items-center gap-2 mb-2">
           <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 flex-shrink-0 animate-pulse" />
           <span className="font-secondary uppercase tracking-wider font-bold text-sm">Phương án tối ưu nhất</span>
@@ -198,7 +198,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-100 font-secondary uppercase tracking-wider font-bold text-slate-700 text-sm">So sánh phương án</div>
         {(allPlans||[]).map((plan,i) => (
-          <div key={i} className={`px-4 py-3.5 flex items-center gap-3 border-b border-slate-50 last:border-0 ${plan.id===bestPlan?.id?'bg-green-50':''}`}>
+          <div key={i} className={`px-4 py-4 flex items-center gap-3 border-b border-slate-50 last:border-0 ${plan.id===bestPlan?.id?'bg-green-50':''}`}>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-sm text-slate-800">{plan.label}</div>
               <div className="text-xs text-slate-400 mt-0.5">Tiết kiệm: {fmt(totalNY - plan.total)}</div>
@@ -217,7 +217,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {(() => {
         const partials = (comboSuggestions||[]).filter(s=>s.partial)
         if (!partials.length) return null
-        const MAX = 5
+        const MAX = 3
         const visible = partials.slice(0, MAX)
         const hidden  = partials.length - MAX
         return (
@@ -244,7 +244,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
           Chi tiết dịch vụ ({(detailLines||[]).length})
         </div>
         {(detailLines||[]).map((line,i) => (
-          <div key={i} className={`px-4 py-3 flex items-start gap-3 border-b border-slate-50 last:border-0 ${i%2?'bg-slate-50/40':''}`}>
+          <div key={i} className={`px-4 py-4 flex items-start gap-3 border-b border-slate-50 last:border-0 ${i%2?'bg-slate-50/40':''}`}>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm text-slate-800 leading-snug">{line.serviceName}</div>
               {line.quantity>1 && <div className="text-xs text-slate-400">×{line.quantity}</div>}
