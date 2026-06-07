@@ -33,7 +33,6 @@ function PrintLayout({ quote, details, wrapClass = 'hidden print:!block' }) {
         <img src={logoNgang} alt="Logo" className="h-14 object-contain" />
         <div className="text-right">
           <div className="text-base font-bold uppercase tracking-widest text-indigo-800 leading-snug">Công ty Cổ phần Tập đoàn Y tế Hoàng Tuấn</div>
-          <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mt-0.5">Báo Giá Dịch Vụ</div>
           <div className="text-[10.5px] text-slate-500 mt-1 leading-relaxed">
             Địa chỉ: Số 24 (40-BT8) 25 (38-BT8), KĐT mới Văn Quán - Yên Phúc,<br/>
             P. Văn Quán, Q. Hà Đông, TP. Hà Nội<br/>
