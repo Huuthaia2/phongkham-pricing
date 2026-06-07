@@ -200,16 +200,27 @@ function handleGetServices(params) {
 // Lấy danh sách Combo
 function handleGetCombos() {
   const rawCombos = getSheetData(CONFIG.SHEETS.COMBOS);
-  const combos = rawCombos.map(c => ({
-    MaCombo:         String(c.MaCombo        || ''),
-    TenCombo:        String(c.TenCombo       || ''),
-    LoaiGia:         String(c.LoaiGia        || 'GIA_TONG'),
-    GiaCombo:        Number(c.GiaCombo)      || 0,
-    PhanTramGiam:    Number(c.PhanTramGiam)  || 0,
-    DieuKienApDung:  String(c.DieuKienApDung || ''),
-    QuaTang:         String(c.QuaTang        || ''),
-    TrangThai:       String(c.TrangThai      || '')
-  }));
+  const combos = rawCombos.map(c => {
+    const loaiCombo = String(c.LoaiCombo || '');
+    let loaiGia;
+    if (loaiCombo === 'Giá cố định') loaiGia = 'GIA_TONG';
+    else if (loaiCombo === 'Giảm %')   loaiGia = 'GIAM_PHAN_TRAM';
+    else loaiGia = loaiCombo; // fallback nếu đã dùng mã kỹ thuật
+
+    let phanTramGiam = Number(c.GiamPhanTram) || 0;
+    if (phanTramGiam > 1) phanTramGiam = phanTramGiam / 100; // chuyển 20 → 0.2
+
+    return {
+      MaCombo:        String(c.MaCombo        || ''),
+      TenCombo:       String(c.TenCombo       || ''),
+      LoaiGia:        loaiGia,
+      GiaCombo:       Number(c.GiaCombo_CoDinh) || 0,
+      PhanTramGiam:   phanTramGiam,
+      DieuKienApDung: String(c.DieuKienApDung  || ''),
+      QuaTang:        String(c.QuaTang         || ''),
+      TrangThai:      String(c.TrangThai        || '')
+    };
+  });
   return makeSuccess({ combos });
 }
 
