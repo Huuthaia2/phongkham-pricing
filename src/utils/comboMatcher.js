@@ -140,6 +140,7 @@ export function calcComboPreview(matchResult, cart, services) {
 
   if (combo.LoaiGia === 'GIA_TONG') {
     const total = Number(combo.GiaCombo)
+    if (!total || total <= 0) return { label: 'Chưa có giá combo' }
     if (!allMet) return { total, label: 'Giá combo nếu đủ điều kiện' }
     const comboServiceIds = conditionResults
       .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
