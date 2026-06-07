@@ -47,6 +47,10 @@ export const useStore = create(
       // ── Calc result ───────────────────────────────────
       calcResult: null,
       setCalcResult: (r) => set({ calcResult: r }),
+
+      // ── Quotes list refresh signal ─────────────────────
+      quotesVersion: 0,
+      bumpQuotesVersion: () => set(s => ({ quotesVersion: s.quotesVersion + 1 })),
     }),
     {
       name: 'pk-store',

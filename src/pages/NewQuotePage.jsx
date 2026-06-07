@@ -108,7 +108,7 @@ function CustomerForm({ onNext }) {
 }
 
 export default function NewQuotePage() {
-  const { user, customer, cart, clearCart, calcResult, setCalcResult, setActiveTab } = useStore()
+  const { user, customer, cart, clearCart, calcResult, setCalcResult, setActiveTab, bumpQuotesVersion } = useStore()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -155,6 +155,7 @@ export default function NewQuotePage() {
       })
       alert(`✅ Đã lưu báo giá ${result.maBaoGia}${result.row ? ` (Dòng ${result.row})` : ''}${result.needsApproval ? '\n⚠️ Cần Quản lý duyệt (giảm >50%)' : ''}`)
       clearCart(); setCalcResult(null); setStep(1)
+      bumpQuotesVersion()
       setActiveTab('quotes')
     } catch (err) {
       setError(err.message)
