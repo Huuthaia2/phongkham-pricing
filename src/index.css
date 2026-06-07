@@ -17,6 +17,11 @@
   font-family: 'UTM Aurora', 'Oswald', sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
 button, a, select, input, textarea, [role="button"] {
   touch-action: manipulation;
 }

@@ -13,7 +13,7 @@ export default function Layout({ children }) {
   const { user, activeTab, setActiveTab, logout } = useStore()
   const visible = NAV.filter(n => n.roles.includes(user?.Role || ''))
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <header className="bg-gradient-to-r from-indigo-800 via-indigo-700 to-indigo-600 text-white px-4 py-2 shadow-lg no-print sticky top-0 z-40 border-b-2 border-brand-orange">
         <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
