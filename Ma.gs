@@ -200,27 +200,138 @@ function handleGetServices(params) {
 // Lấy danh sách Combo
 function handleGetCombos() {
   const rawCombos = getSheetData(CONFIG.SHEETS.COMBOS);
-  const combos = rawCombos.map(c => {
-    const list = [];
-    if (c.DichVu1) list.push(c.DichVu1);
-    if (c.DichVu2) list.push(c.DichVu2);
-    if (c.DichVu3) list.push(c.DichVu3);
-    if (c.DichVu4) list.push(c.DichVu4);
-    if (c.DichVu5) list.push(c.DichVu5);
-    
-    let listSvc = c.DanhSachDichVu ? String(c.DanhSachDichVu).split(',').map(s=>s.trim()) : [];
-    if (list.length > 0) {
-      listSvc = list;
-    }
-    
-    return {
-      MaCombo: c.MaCombo,
-      TenCombo: c.TenCombo,
-      GiaCombo: Number(c.GiaCombo) || 0,
-      DanhSachDichVu: listSvc
-    };
-  });
+  const combos = rawCombos.map(c => ({
+    MaCombo:         String(c.MaCombo        || ''),
+    TenCombo:        String(c.TenCombo       || ''),
+    LoaiGia:         String(c.LoaiGia        || 'GIA_TONG'),
+    GiaCombo:        Number(c.GiaCombo)      || 0,
+    PhanTramGiam:    Number(c.PhanTramGiam)  || 0,
+    DieuKienApDung:  String(c.DieuKienApDung || ''),
+    QuaTang:         String(c.QuaTang        || ''),
+    TrangThai:       String(c.TrangThai      || '')
+  }));
   return makeSuccess({ combos });
+}
+
+// ── Combo matching helpers (port từ comboMatcher.js) ──────────────────────────
+
+function expandSet_(setStr) {
+  var ids = [];
+  setStr.split(',').forEach(function(raw) {
+    var part = raw.trim();
+    if (!part) return;
+    if (part.indexOf('~') !== -1) {
+      var halves = part.split('~');
+      var from = halves[0].trim(), to = halves[1].trim();
+      var m = from.match(/^([A-Za-z-]+)(\d+)$/);
+      if (!m) return;
+      var prefix = m[1], padLen = m[2].length;
+      var fromN = parseInt(m[2]), toN = parseInt(to.replace(prefix, ''));
+      for (var i = fromN; i <= toN; i++) {
+        ids.push(prefix + String(i).padStart(padLen, '0'));
+      }
+    } else {
+      ids.push(part);
+    }
+  });
+  return ids;
+}
+
+function parseConditions_(str) {
+  if (!str || str.indexOf('[pending]') !== -1) return [];
+  return str.split('+').map(function(raw) {
+    var token = raw.trim();
+    var isTarget = token.indexOf('*') !== -1;
+    token = token.replace('*', '').trim();
+
+    if (token.indexOf('TQ01>=') === 0) {
+      return { type: 'ANY_TQ01', minPrice: Number(token.replace('TQ01>=', '')), isTarget: isTarget };
+    }
+    if (token.indexOf('TAG:') === 0) {
+      var rest = token.replace('TAG:', '');
+      if (rest.indexOf('>=') !== -1) {
+        var parts = rest.split('>=');
+        return { type: 'TAG', tag: parts[0].trim(), min: Number(parts[1]) || 1, isTarget: isTarget };
+      }
+      return { type: 'TAG', tag: rest.trim(), min: 1, isTarget: isTarget };
+    }
+
+    var setStr = token, minCount = 1;
+    if (token.indexOf('>=') !== -1) {
+      var idx = token.lastIndexOf('>=');
+      setStr = token.substring(0, idx);
+      minCount = Number(token.substring(idx + 2)) || 1;
+    }
+    var ids = expandSet_(setStr);
+    if (minCount > 1) return { type: 'RANGE_MIN', ids: ids, min: minCount, isTarget: isTarget };
+    if (ids.length > 1) return { type: 'OR_EXACT', ids: ids, isTarget: isTarget };
+    return { type: 'EXACT', id: ids[0], isTarget: isTarget };
+  }).filter(Boolean);
+}
+
+function matchCondition_(cond, cart, services, excludeIds) {
+  excludeIds = excludeIds || [];
+  var cartIds = cart.map(function(i) { return i.serviceId; }).filter(function(id) { return excludeIds.indexOf(id) === -1; });
+
+  if (cond.type === 'EXACT') {
+    var met = cartIds.indexOf(cond.id) !== -1;
+    return { met: met, matched: met ? [cond.id] : [] };
+  }
+  if (cond.type === 'OR_EXACT') {
+    var matched = cond.ids.filter(function(id) { return cartIds.indexOf(id) !== -1; });
+    return { met: matched.length >= 1, matched: matched };
+  }
+  if (cond.type === 'RANGE_MIN') {
+    var matched = cond.ids.filter(function(id) { return cartIds.indexOf(id) !== -1; });
+    return { met: matched.length >= cond.min, matched: matched };
+  }
+  if (cond.type === 'ANY_TQ01') {
+    var matched = cart.filter(function(i) {
+      if (excludeIds.indexOf(i.serviceId) !== -1) return false;
+      var svc = services.find(function(s) { return s.MaDichVu === i.serviceId; });
+      return svc && String(svc.NhomKM || '') === 'TQ-01' &&
+             String(svc.ApDungDongThoi_TQ || '') === 'Có' &&
+             Number(svc.GiaSauKM) >= cond.minPrice;
+    }).map(function(i) { return i.serviceId; });
+    return { met: matched.length >= 1, matched: matched };
+  }
+  if (cond.type === 'TAG') {
+    var matched = cart.filter(function(i) {
+      if (excludeIds.indexOf(i.serviceId) !== -1) return false;
+      var svc = services.find(function(s) { return s.MaDichVu === i.serviceId; });
+      return svc && String(svc.Tag || '').split(',').map(function(t) { return t.trim(); }).indexOf(cond.tag) !== -1;
+    }).map(function(i) { return i.serviceId; });
+    return { met: matched.length >= cond.min, matched: matched };
+  }
+  return { met: false, matched: [] };
+}
+
+function matchCombo_(combo, cart, services) {
+  var conditions = parseConditions_(combo.DieuKienApDung || '');
+  if (conditions.length === 0) return null;
+
+  var targetExcludeIds = [];
+  conditions.filter(function(c) { return c.isTarget; }).forEach(function(cond) {
+    if (cond.type === 'EXACT') {
+      targetExcludeIds.push(cond.id);
+    } else if (cond.ids) {
+      cond.ids.filter(function(id) { return cart.find(function(i) { return i.serviceId === id; }); })
+        .forEach(function(id) { targetExcludeIds.push(id); });
+    }
+  });
+
+  var conditionResults = conditions.map(function(cond) {
+    var exclude = cond.type === 'ANY_TQ01' ? targetExcludeIds : [];
+    var res = matchCondition_(cond, cart, services, exclude);
+    return Object.assign({}, cond, res);
+  });
+
+  var allMet = conditionResults.every(function(c) { return c.met; });
+  var targetServices = conditionResults
+    .filter(function(c) { return c.isTarget && c.met; })
+    .reduce(function(acc, c) { return acc.concat(c.matched); }, []);
+
+  return { combo: combo, allMet: allMet, conditionResults: conditionResults, targetServices: targetServices };
 }
 
 // Lấy luật KM
@@ -301,50 +412,90 @@ function handleCalculate(body) {
     totalSN = totalTQ - snDiscountTotal;
   }
   
-  // Áp dụng Combo siêu hời
-  let bestComboTotal = totalTQ;
-  let appliedComboId = '';
-  let appliedComboName = '';
-  const selectedIds = detailLines.map(d => d.serviceId);
-  
-  combos.forEach(cb => {
-    const isMatch = cb.DanhSachDichVu.every(id => selectedIds.indexOf(id) !== -1);
-    if (isMatch) {
-      let comboSum = cb.GiaCombo;
-      let outsideSum = 0;
-      
-      detailLines.forEach(line => {
-        if (cb.DanhSachDichVu.indexOf(line.serviceId) === -1) {
-          outsideSum += line.lineTQ;
-        }
-      });
-      
-      const totalWithCombo = comboSum + outsideSum;
-      if (totalWithCombo < bestComboTotal) {
-        bestComboTotal = totalWithCombo;
-        appliedComboId = cb.MaCombo;
-        appliedComboName = cb.TenCombo;
-      }
+  // Áp dụng Combo
+  var activeCombs = combos.filter(function(c) { return c.TrangThai === 'Đang áp dụng'; });
+  var cart = detailLines.map(function(d) { return { serviceId: d.serviceId, quantity: d.quantity }; });
+
+  var bestComboTotal = totalTQ;
+  var appliedComboId = '';
+  var appliedComboName = '';
+  var appliedComboResult = null;
+
+  activeCombs.forEach(function(cb) {
+    var mr = matchCombo_(cb, cart, services);
+    if (!mr || !mr.allMet) return;
+
+    var comboTotal;
+    if (cb.LoaiGia === 'GIA_TONG') {
+      var outsideSum = detailLines.reduce(function(sum, line) {
+        var inCombo = mr.conditionResults.some(function(c) {
+          return c.type !== 'ANY_TQ01' && c.type !== 'TAG' && c.matched.indexOf(line.serviceId) !== -1;
+        });
+        return sum + (inCombo ? 0 : line.lineTQ);
+      }, 0);
+      comboTotal = Number(cb.GiaCombo) + outsideSum;
+    } else if (cb.LoaiGia === 'GIA_ANCHOR') {
+      var saving = mr.targetServices.reduce(function(sum, id) {
+        var line = detailLines.find(function(l) { return l.serviceId === id; });
+        return sum + (line ? line.lineTQ - Number(cb.GiaCombo) * line.quantity : 0);
+      }, 0);
+      comboTotal = totalTQ - saving;
+    } else if (cb.LoaiGia === 'GIAM_PHAN_TRAM') {
+      var saving = mr.targetServices.reduce(function(sum, id) {
+        var line = detailLines.find(function(l) { return l.serviceId === id; });
+        return sum + (line ? line.lineTQ * Number(cb.PhanTramGiam) : 0);
+      }, 0);
+      comboTotal = totalTQ - saving;
+    } else {
+      return;
+    }
+
+    if (comboTotal < bestComboTotal) {
+      bestComboTotal = comboTotal;
+      appliedComboId = cb.MaCombo;
+      appliedComboName = cb.TenCombo;
+      appliedComboResult = mr;
     }
   });
-  
-  if (appliedComboId) {
-    const cb = combos.find(c => c.MaCombo === appliedComboId);
-    let totalComboNY = 0;
-    detailLines.forEach(line => {
-      if (cb.DanhSachDichVu.indexOf(line.serviceId) !== -1) {
-        totalComboNY += line.lineNY;
-      }
-    });
-    
-    detailLines.forEach(line => {
-      if (cb.DanhSachDichVu.indexOf(line.serviceId) !== -1) {
-        line.comboId = cb.MaCombo;
-        const ratio = totalComboNY > 0 ? line.lineNY / totalComboNY : 0;
-        line.comboPrice = Math.round((cb.GiaCombo * ratio) / line.quantity);
-        line.optimalPrice = line.comboPrice * line.quantity;
-      }
-    });
+
+  if (appliedComboId && appliedComboResult) {
+    var cb = combos.find(function(c) { return c.MaCombo === appliedComboId; });
+    var mr = appliedComboResult;
+
+    if (cb.LoaiGia === 'GIA_TONG') {
+      var comboLineIds = mr.conditionResults
+        .filter(function(c) { return c.type !== 'ANY_TQ01' && c.type !== 'TAG'; })
+        .reduce(function(acc, c) { return acc.concat(c.matched); }, []);
+      var totalComboNY = detailLines.reduce(function(sum, l) {
+        return sum + (comboLineIds.indexOf(l.serviceId) !== -1 ? l.lineNY : 0);
+      }, 0);
+      detailLines.forEach(function(line) {
+        if (comboLineIds.indexOf(line.serviceId) !== -1) {
+          line.comboId = cb.MaCombo;
+          var ratio = totalComboNY > 0 ? line.lineNY / totalComboNY : 0;
+          line.comboPrice = Math.round(cb.GiaCombo * ratio / line.quantity);
+          line.optimalPrice = line.comboPrice * line.quantity;
+        }
+      });
+    } else if (cb.LoaiGia === 'GIA_ANCHOR') {
+      mr.targetServices.forEach(function(id) {
+        var line = detailLines.find(function(l) { return l.serviceId === id; });
+        if (line) {
+          line.comboId = cb.MaCombo;
+          line.comboPrice = Number(cb.GiaCombo);
+          line.optimalPrice = line.comboPrice * line.quantity;
+        }
+      });
+    } else if (cb.LoaiGia === 'GIAM_PHAN_TRAM') {
+      mr.targetServices.forEach(function(id) {
+        var line = detailLines.find(function(l) { return l.serviceId === id; });
+        if (line) {
+          line.comboId = cb.MaCombo;
+          line.comboPrice = Math.round(line.priceTQ * (1 - Number(cb.PhanTramGiam)));
+          line.optimalPrice = line.comboPrice * line.quantity;
+        }
+      });
+    }
   }
   
   if (hasBirthday && branch === 'OCP' && totalSN < bestComboTotal) {
@@ -383,20 +534,12 @@ function handleCalculate(body) {
   const tiLeGiam = totalNY > 0 ? (tienGiam / totalNY) : 0;
   const needsApproval = tiLeGiam > CONFIG.APPROVAL_THRESHOLD;
   
-  // Gợi ý combo nếu chọn thiếu dịch vụ thuộc combo
-  const comboSuggestions = [];
-  combos.forEach(cb => {
-    const matched = cb.DanhSachDichVu.filter(id => selectedIds.indexOf(id) !== -1);
-    if (matched.length > 0 && matched.length < cb.DanhSachDichVu.length) {
-      const missingIds = cb.DanhSachDichVu.filter(id => selectedIds.indexOf(id) === -1);
-      comboSuggestions.push({
-        combo: cb,
-        partial: true,
-        missingIds: missingIds.map(id => {
-          const s = services.find(sv => sv.MaDichVu === id);
-          return s ? s.TenDichVu : id;
-        })
-      });
+  // Gợi ý combo partial (frontend đã xử lý real-time, GAS chỉ bổ sung cho payload)
+  var comboSuggestions = [];
+  activeCombs.forEach(function(cb) {
+    var mr = matchCombo_(cb, cart, services);
+    if (mr && !mr.allMet && mr.conditionResults.some(function(c) { return c.met; })) {
+      comboSuggestions.push({ combo: cb, partial: true });
     }
   });
   

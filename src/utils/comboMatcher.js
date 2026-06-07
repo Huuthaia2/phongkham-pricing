@@ -128,47 +128,47 @@ export function matchCombo(combo, cart, services) {
   return { combo, allMet, partial: matchedCount > 0 && !allMet, matchedCount, totalConditions: conditions.length, conditionResults, targetServices }
 }
 
-// ── Tính giá preview khi combo đã match đủ ───────────────────────────────────
+// ── Tính giá preview (hiển thị cả khi chưa đủ điều kiện) ────────────────────
 export function calcComboPreview(matchResult, cart, services) {
-  if (!matchResult?.allMet) return null
-  const { combo, conditionResults, targetServices } = matchResult
+  if (!matchResult) return null
+  const { combo, allMet, conditionResults, targetServices } = matchResult
 
   const getSvcPrice = (serviceId) => {
     const svc = services.find(s => s.MaDichVu === serviceId)
     return Number(svc?.GiaSauKM) || 0
   }
 
-  // Tập hợp tất cả DV thuộc các điều kiện của combo (không kể ANY_TQ01/TAG)
-  const comboServiceIds = conditionResults
-    .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
-    .flatMap(c => c.matched)
-
-  const comboServicesTQ = comboServiceIds.reduce((sum, id) => {
-    const item = cart.find(i => i.serviceId === id)
-    return sum + getSvcPrice(id) * (item?.quantity || 1)
-  }, 0)
-
   if (combo.LoaiGia === 'GIA_TONG') {
-    const total  = Number(combo.GiaCombo)
-    return { total, saving: Math.max(0, comboServicesTQ - total) }
+    const total = Number(combo.GiaCombo)
+    if (!allMet) return { total, label: 'Giá combo nếu đủ điều kiện' }
+    const comboServiceIds = conditionResults
+      .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
+      .flatMap(c => c.matched)
+    const currentTQ = comboServiceIds.reduce((sum, id) => {
+      const item = cart.find(i => i.serviceId === id)
+      return sum + getSvcPrice(id) * (item?.quantity || 1)
+    }, 0)
+    return { total, saving: Math.max(0, currentTQ - total) }
   }
 
   if (combo.LoaiGia === 'GIA_ANCHOR') {
-    const anchorId    = targetServices[0]
-    const anchorItem  = cart.find(i => i.serviceId === anchorId)
-    const anchorQty   = anchorItem?.quantity || 1
-    const anchorOldP  = getSvcPrice(anchorId) * anchorQty
-    const anchorNewP  = Number(combo.GiaCombo)
-    return { total: anchorNewP, saving: Math.max(0, anchorOldP - anchorNewP), label: 'Giá DV chính' }
+    const total = Number(combo.GiaCombo)
+    if (!allMet || !targetServices[0]) return { total, label: 'Giá DV chính nếu đủ điều kiện' }
+    const anchorId   = targetServices[0]
+    const anchorItem = cart.find(i => i.serviceId === anchorId)
+    const anchorOldP = getSvcPrice(anchorId) * (anchorItem?.quantity || 1)
+    return { total, saving: Math.max(0, anchorOldP - total), label: 'Giá DV chính' }
   }
 
   if (combo.LoaiGia === 'GIAM_PHAN_TRAM') {
-    const rate    = Number(combo.PhanTramGiam) || 0
-    const saving  = targetServices.reduce((sum, id) => {
+    const rate = Number(combo.PhanTramGiam) || 0
+    const pct  = Math.round(rate * 100)
+    if (!allMet || !targetServices.length) return { pct }
+    const saving = targetServices.reduce((sum, id) => {
       const item = cart.find(i => i.serviceId === id)
       return sum + getSvcPrice(id) * (item?.quantity || 1) * rate
     }, 0)
-    return { saving: Math.round(saving), pct: Math.round(rate * 100) }
+    return { pct, saving: Math.round(saving) }
   }
 
   return null
