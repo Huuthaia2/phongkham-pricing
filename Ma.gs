@@ -6,6 +6,7 @@ const CONFIG = {
     SERVICES: 'DM_DichVu',    // Sheet danh mục dịch vụ
     COMBOS: 'DM_Combo',       // Sheet danh mục combo
     RULES: 'DM_LuatKM',       // Sheet luật khuyến mãi
+    COSO: 'DM_Coso',          // Sheet danh mục cơ sở
     STAFF: 'DM_NhanVien',     // Sheet nhân viên
     BQ_HEADER: 'BQ_Header',   // Sheet đầu phiếu báo giá
     BQ_DETAIL: 'BQ_ChiTiet'   // Sheet chi tiết báo giá
@@ -31,6 +32,8 @@ function doGet(e) {
       result = handleGetCombos();
     } else if (path === 'rules') {
       result = handleGetRules();
+    } else if (path === 'coso') {
+      result = handleGetCoso();
     } else if (path === 'staff') {
       result = handleGetStaff(e.parameter.branch);
     } else if (path === 'quotes') {
@@ -387,6 +390,19 @@ function getKMSinhNhat_(rules, totalTQ, groupCount, specialType) {
 
   var total = applied.reduce(function(sum, r) { return sum + parseCurrency_(r.GiaTriGiam); }, 0);
   return { total: total, applied: applied };
+}
+
+// Lấy danh sách cơ sở
+function handleGetCoso() {
+  const raw = getSheetData(CONFIG.SHEETS.COSO);
+  const cosos = raw
+    .filter(r => r.MaCoso)
+    .map(r => ({
+      MaCoso:    String(r.MaCoso    || ''),
+      TenCoSo:   String(r.Ten_Co_So || ''),
+      DiaChi:    String(r.Dia_chi   || '')
+    }));
+  return makeSuccess({ cosos });
 }
 
 // Lấy luật KM

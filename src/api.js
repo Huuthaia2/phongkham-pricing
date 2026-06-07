@@ -39,6 +39,13 @@ async function request(method, path, params = {}, body = null) {
     // Return mock data for local testing when VITE_GAS_URL is missing
     await new Promise(r => setTimeout(r, 400)) // simulated lag
     if (path === 'health') return { success: true }
+    if (path === 'coso') return { success: true, cosos: [
+      { MaCoso: 'CS-01', TenCoSo: 'Cơ sở Hoàng Quốc Việt', DiaChi: 'Số 1/487 Hoàng Quốc Việt, Hà Nội' },
+      { MaCoso: 'CS-02', TenCoSo: 'Cơ sở Văn Quán', DiaChi: 'Số 38-40 BT8, KĐT Văn Quán, Hà Đông' },
+      { MaCoso: 'CS-03', TenCoSo: 'Cơ sở Ocean Park', DiaChi: 'Số 120-122 San Hô 06, KĐT Vinhomes Ocean Park' },
+      { MaCoso: 'CS-04', TenCoSo: 'Cơ sở Hạ Long', DiaChi: 'Số 10, Phú Gia 1, Vinhomes Dragon Bay' },
+      { MaCoso: 'CS-05', TenCoSo: 'Cơ sở Hải Phòng', DiaChi: 'Số 12B, Manhattan 09, Vinhomes Imperia' },
+    ]}
     if (path === 'services') return { success: true, services: MOCK_DATA.services, groups: ["Phẫu thuật thẩm mỹ", "Da liễu thẩm mỹ"] }
     if (path === 'combos') return { success: true, combos: MOCK_DATA.combos }
     if (path === 'rules') return { success: true, rules: MOCK_DATA.rules }
@@ -181,6 +188,7 @@ async function request(method, path, params = {}, body = null) {
 
 export const API = {
   health:       ()       => request('GET',  'health'),
+  getCoso:      ()       => request('GET',  'coso'),
   getServices:  (p)      => request('GET',  'services',       p || {}),
   getCombos:    ()       => request('GET',  'combos'),
   getRules:     ()       => request('GET',  'rules'),

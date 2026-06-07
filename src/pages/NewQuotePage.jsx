@@ -7,6 +7,10 @@ import { CakeSlice, Users, AlertTriangle, Loader2 } from 'lucide-react'
 
 function CustomerForm({ onNext }) {
   const { customer, setCustomer, user } = useStore()
+  const [cosos, setCosos] = useState([])
+  useEffect(() => {
+    API.getCoso().then(d => setCosos(d.cosos || [])).catch(() => {})
+  }, [])
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4 animate-slideUp">
       <div className="font-secondary uppercase tracking-wider font-bold text-slate-800 text-base">Thông tin khách hàng</div>
@@ -30,11 +34,16 @@ function CustomerForm({ onNext }) {
           <label className="text-xs font-secondary tracking-wider text-slate-500 uppercase">Cơ sở</label>
           <select className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             value={customer.branch} onChange={e=>setCustomer({branch:e.target.value})}>
-            <option value="CS-01">Cơ sở Hoàng Quốc Việt</option>
-            <option value="CS-02">Cơ sở Văn Quán</option>
-            <option value="CS-03">Cơ sở Ocean Park</option>
-            <option value="CS-04">Cơ sở Hạ Long</option>
-            <option value="CS-05">Cơ sở Hải Phòng</option>
+            {cosos.length > 0
+              ? cosos.map(c => <option key={c.MaCoso} value={c.MaCoso}>{c.TenCoSo}</option>)
+              : <>
+                  <option value="CS-01">Cơ sở Hoàng Quốc Việt</option>
+                  <option value="CS-02">Cơ sở Văn Quán</option>
+                  <option value="CS-03">Cơ sở Ocean Park</option>
+                  <option value="CS-04">Cơ sở Hạ Long</option>
+                  <option value="CS-05">Cơ sở Hải Phòng</option>
+                </>
+            }
           </select>
         </div>
         <div>
