@@ -17,7 +17,7 @@ function CustomerForm({ onNext }) {
             placeholder="Nguyễn Thị A" value={customer.name} onChange={e=>setCustomer({name:e.target.value})} />
         </div>
         <div>
-          <label className="text-xs font-secondary tracking-wider text-slate-500 uppercase">Số điện thoại</label>
+          <label className="text-xs font-secondary tracking-wider text-slate-500 uppercase">Số điện thoại *</label>
           <input className="mt-1 w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
             placeholder="09xx..." value={customer.phone} onChange={e=>setCustomer({phone:e.target.value})} />
         </div>
@@ -87,7 +87,7 @@ function CustomerForm({ onNext }) {
         </div>
       </div>
 
-      <button onClick={onNext} disabled={!customer.name.trim()}
+      <button onClick={onNext} disabled={!customer.name.trim() || !customer.phone.trim()}
         className="w-full py-3.5 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase shadow hover:opacity-95 disabled:opacity-40 transition-all active:scale-95">
         Tiếp tục → Chọn dịch vụ
       </button>
@@ -182,10 +182,15 @@ export default function NewQuotePage() {
       {step === 1 && <CustomerForm onNext={() => setStep(2)} />}
 
       {step === 2 && (
-        <>
+        <div className="pb-24">
           <ServicePicker />
-          <div className="sticky bottom-16 sm:bottom-4 z-10 no-print">
-            <div className="flex gap-2">
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="fixed bottom-16 sm:bottom-4 left-0 sm:left-16 right-0 z-20 no-print px-3 sm:px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-2 bg-slate-50/80 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg border border-slate-200/60">
               <button onClick={() => setStep(1)}
                 className="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-secondary font-bold tracking-wider text-xs uppercase hover:bg-slate-50">
                 ← Quay lại
@@ -201,7 +206,7 @@ export default function NewQuotePage() {
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {step === 3 && calcResult && (
