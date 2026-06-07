@@ -1,5 +1,6 @@
 import React from 'react'
 import { useStore } from '../store'
+import logoNgang from '../assets/logo-ngang.png'
 
 const fmt  = n => (n||0).toLocaleString('vi-VN') + 'đ'
 const fmtM = n => ((n||0)/1e6).toFixed(1) + ' tr.đ'
@@ -11,21 +12,30 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
 
   return (
     <div className="space-y-4 animate-slideUp">
+      {/* Print-only brand header */}
+      <div className="hidden print:flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+        <img src={logoNgang} alt="Logo" className="h-12 object-contain" />
+        <div className="text-right">
+          <div className="font-logo text-base tracking-wider uppercase text-slate-800">Báo Giá Dịch Vụ</div>
+          <div className="text-xs font-secondary tracking-wide text-slate-500 uppercase mt-1">{customer.branch} · Ngày tư vấn: {customer.consultDate}</div>
+        </div>
+      </div>
+
       {/* KH header */}
-      <div className="bg-gradient-to-r from-indigo-700 to-blue-600 rounded-2xl overflow-hidden text-white">
+      <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl overflow-hidden text-white shadow-lg">
         <div className="px-5 py-4 flex items-start justify-between gap-2">
           <div>
-            <div className="font-bold text-lg">{customer.name}</div>
-            <div className="text-blue-200 text-sm">{customer.phone} · {customer.branch} · {customer.consultDate}</div>
-            <div className="text-blue-200 text-xs mt-0.5">TVV: {user?.HoTen}</div>
+            <div className="font-secondary uppercase tracking-wider font-bold text-xl leading-none">{customer.name}</div>
+            <div className="text-indigo-200 font-secondary tracking-wide text-xs mt-1.5">{customer.phone} · {customer.branch} · {customer.consultDate}</div>
+            <div className="text-indigo-200 font-secondary tracking-wide text-[11px] mt-0.5">TVV: {user?.HoTen}</div>
           </div>
-          <button onClick={onBack} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg no-print">← Sửa</button>
+          <button onClick={onBack} className="text-xs bg-white/20 hover:bg-white/30 font-secondary uppercase tracking-wider px-3 py-1.5 rounded-lg no-print transition-all">← Sửa</button>
         </div>
-        <div className="grid grid-cols-3 border-t border-white/20">
+        <div className="grid grid-cols-3 border-t border-white/10 bg-indigo-950/20">
           {[['Giá niêm yết', fmt(totalNY)], ['Sau TQ-01', fmt(totalTQ)], ['Tiết kiệm', fmt(tienGiam)]].map(([l,v]) => (
-            <div key={l} className="px-3 py-3 text-center border-r border-white/20 last:border-0">
-              <div className="text-xs text-blue-200">{l}</div>
-              <div className="font-bold text-sm mt-0.5">{v}</div>
+            <div key={l} className="px-3 py-3 text-center border-r border-white/10 last:border-0">
+              <div className="text-xs text-indigo-200 font-secondary uppercase tracking-wider font-semibold">{l}</div>
+              <div className="font-secondary font-bold text-base mt-0.5">{v}</div>
             </div>
           ))}
         </div>
@@ -43,12 +53,12 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 text-white shadow-xl shadow-green-200">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xl">⭐</span>
-          <span className="font-bold text-sm uppercase tracking-wide">Phương án tối ưu nhất</span>
-          <span className="ml-auto bg-white/30 px-2.5 py-0.5 rounded-full text-xs font-black">
+          <span className="font-secondary uppercase tracking-wider font-bold text-sm">Phương án tối ưu nhất</span>
+          <span className="ml-auto bg-white/30 px-2.5 py-0.5 rounded-full text-xs font-secondary font-bold tracking-wider">
             -{Math.round(tiLeGiam*100)}%
           </span>
         </div>
-        <div className="text-3xl font-black mb-1">{fmt(bestPlan?.total)}</div>
+        <div className="text-4xl font-secondary font-bold tracking-wide mb-1">{fmt(bestPlan?.total)}</div>
         <div className="text-green-100 text-sm mb-3">{bestPlan?.label}</div>
         <div className="space-y-0.5">
           {(bestPlan?.promos||[]).map((p,i) => <div key={i} className="text-xs text-green-100">✓ {p}</div>)}
@@ -63,7 +73,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
 
       {/* All plans */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 font-bold text-slate-700 text-sm">So sánh phương án</div>
+        <div className="px-4 py-3 border-b border-slate-100 font-secondary uppercase tracking-wider font-bold text-slate-700 text-sm">So sánh phương án</div>
         {(allPlans||[]).map((plan,i) => (
           <div key={i} className={`px-4 py-3.5 flex items-center gap-3 border-b border-slate-50 last:border-0 ${plan.id===bestPlan?.id?'bg-green-50':''}`}>
             <div className="flex-1 min-w-0">
@@ -72,8 +82,8 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
               {(plan.warnings||[]).map((w,wi) => <div key={wi} className="text-xs text-amber-600">{w}</div>)}
             </div>
             <div className="text-right">
-              <div className="font-bold text-indigo-700">{fmt(plan.total)}</div>
-              <div className="text-xs text-green-600 font-semibold">-{Math.round((1-plan.total/totalNY)*100)}%</div>
+              <div className="font-secondary font-bold text-lg text-indigo-650">{fmt(plan.total)}</div>
+              <div className="text-xs text-green-600 font-secondary font-bold">-{Math.round((1-plan.total/totalNY)*100)}%</div>
             </div>
             {plan.id===bestPlan?.id && <span className="text-green-500 text-xl">✓</span>}
           </div>
@@ -94,7 +104,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
 
       {/* Detail table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 font-bold text-slate-700 text-sm">
+        <div className="px-4 py-3 border-b border-slate-100 font-secondary uppercase tracking-wider font-bold text-slate-700 text-sm">
           Chi tiết dịch vụ ({(detailLines||[]).length})
         </div>
         {(detailLines||[]).map((line,i) => (
@@ -107,13 +117,13 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
             </div>
             <div className="text-right flex-shrink-0">
               <div className="text-xs text-slate-400 line-through">{fmt(line.lineNY)}</div>
-              <div className="font-bold text-indigo-700 text-sm">{fmt(line.lineTQ)}</div>
+              <div className="font-secondary font-bold text-indigo-650 text-base">{fmt(line.lineTQ)}</div>
             </div>
           </div>
         ))}
-        <div className="px-4 py-3.5 flex justify-between font-bold text-slate-800 bg-slate-50 border-t border-slate-200">
-          <span>Tổng (phương án tối ưu)</span>
-          <span className="text-indigo-700 text-lg">{fmt(bestPlan?.total)}</span>
+        <div className="px-4 py-3.5 flex justify-between font-bold text-slate-800 bg-slate-50 border-t border-slate-200 items-center">
+          <span className="font-secondary uppercase tracking-wider text-sm">Tổng (phương án tối ưu)</span>
+          <span className="text-indigo-600 font-secondary font-bold text-2xl">{fmt(bestPlan?.total)}</span>
         </div>
       </div>
 
@@ -126,7 +136,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       )}
 
       {/* Standard notes */}
-      <div className="bg-slate-50 rounded-xl p-3 space-y-1 text-xs text-slate-500">
+      <div className="bg-slate-50 rounded-xl p-3 space-y-1 text-xs text-slate-500 font-medium">
         <div>• Báo giá có hiệu lực 7 ngày kể từ ngày tư vấn.</div>
         <div>• KM Sinh nhật chỉ áp dụng tại CS OceanPark, không cộng với Combo Siêu Hời.</div>
         <div>• Giá đã bao gồm CTKM thường quy TQ-01 hiện hành.</div>
@@ -135,11 +145,11 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {/* Actions */}
       <div className="grid grid-cols-2 gap-3 no-print pb-4">
         <button onClick={() => window.print()}
-          className="py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-all">
+          className="py-3 rounded-xl bg-slate-100 text-slate-700 font-secondary font-bold tracking-wider text-xs uppercase hover:bg-slate-200 transition-all">
           🖨️ In báo giá
         </button>
         <button onClick={() => onSave()} disabled={loading}
-          className="py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md shadow-indigo-200 active:scale-95">
+          className="py-3 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-orange/30 active:scale-95">
           {loading ? '⏳ Đang lưu...' : '💾 Lưu báo giá'}
         </button>
       </div>

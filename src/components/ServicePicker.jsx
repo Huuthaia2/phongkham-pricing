@@ -45,7 +45,7 @@ export default function ServicePicker() {
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {['Tất cả', ...groups].map(g => (
             <button key={g} onClick={()=>setGroup(g)}
-              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex-shrink-0
+              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-secondary font-bold uppercase tracking-wider transition-all flex-shrink-0
                 ${group===g ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
               {g}
             </button>
@@ -54,8 +54,8 @@ export default function ServicePicker() {
       </div>
 
       {cart.length > 0 && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-indigo-800 text-sm font-semibold">
-          ✓ Đã chọn {cart.length} dịch vụ · Tổng TQ: <span className="text-indigo-600">{cartTotal.toLocaleString('vi-VN')}đ</span>
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-indigo-800 text-sm font-secondary font-bold tracking-wider uppercase">
+          ✓ Đã chọn {cart.length} dịch vụ · Tổng TQ: <span className="text-indigo-650">{cartTotal.toLocaleString('vi-VN')}đ</span>
         </div>
       )}
 
@@ -81,10 +81,10 @@ export default function ServicePicker() {
                   {svc.hasWarning && <div className="text-xs text-red-500 mt-0.5">🔴 Cần xác minh giá trước khi chào</div>}
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {svc.GiaNiemYet && <span className="text-xs text-slate-400 line-through">{Number(svc.GiaNiemYet).toLocaleString('vi-VN')}đ</span>}
-                    <span className="font-bold text-indigo-700 text-sm">
+                    <span className="font-secondary font-bold text-indigo-600 text-base">
                       {svc.GiaSauKM ? Number(svc.GiaSauKM).toLocaleString('vi-VN')+'đ' : '—'}
                     </span>
-                    {svc.PhanTramKM > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold">-{Math.round(svc.PhanTramKM*100)}%</span>}
+                    {svc.PhanTramKM > 0 && <span className="bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full font-semibold font-secondary font-bold">-{Math.round(svc.PhanTramKM*100)}%</span>}
                     {svc.DonViTinh && svc.DonViTinh !== 'Dịch vụ' && <span className="text-xs text-slate-400">/{svc.DonViTinh}</span>}
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function ServicePicker() {
                   <span className="font-bold w-5 text-center text-slate-800">{qty}</span>
                   <button className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold hover:bg-indigo-200"
                     onClick={()=>updateQty(svc.MaDichVu, qty+1)}>+</button>
-                  <span className="ml-auto font-bold text-indigo-700 text-sm">
+                  <span className="ml-auto font-secondary font-bold text-indigo-600 text-base">
                     {(Number(svc.GiaSauKM||0)*qty).toLocaleString('vi-VN')}đ
                   </span>
                 </div>
@@ -107,7 +107,7 @@ export default function ServicePicker() {
         })}
         {filtered.length > displayCount && (
           <button onClick={() => setDisplayCount(prev => prev + 25)}
-            className="w-full py-3 text-xs font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
+            className="w-full py-3 text-xs font-secondary font-bold uppercase tracking-wider text-indigo-650 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
             Xem thêm ({filtered.length - displayCount} dịch vụ)
           </button>
         )}

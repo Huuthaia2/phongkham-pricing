@@ -77,15 +77,15 @@ export default function QuoteListPage() {
   return (
     <div className="space-y-3 max-w-2xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-slate-800">Danh sách báo giá</h1>
-        <span className="text-sm text-slate-500">{filtered.length} báo giá</span>
+        <h1 className="text-xl font-secondary uppercase tracking-wider font-bold text-slate-800">Danh sách báo giá</h1>
+        <span className="text-xs text-slate-500 font-secondary uppercase tracking-wider font-bold">{filtered.length} báo giá</span>
       </div>
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         {['','Chờ duyệt','Đã duyệt','Đã chốt','Huỷ'].map(s => (
           <button key={s} onClick={()=>setFilter(s)}
-            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex-shrink-0
-              ${filter===s?'bg-indigo-600 text-white':'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-secondary font-bold uppercase tracking-wider transition-all flex-shrink-0
+              ${filter===s?'bg-indigo-600 text-white shadow':'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
             {s||'Tất cả'}{s?` (${quotes.filter(q=>q.TrangThaiBaoGia===s).length})`:''}
           </button>
         ))}
@@ -110,8 +110,8 @@ export default function QuoteListPage() {
                 <div className="text-xs text-slate-400">TVV: {q.TenTuVanVien} · {q.SoDienThoai}</div>
               </div>
               <div className="text-right flex-shrink-0">
-                <div className="font-bold text-indigo-700">{fmt(q.GiaToiUu)}</div>
-                <div className="text-xs text-green-600 font-semibold">-{Math.round((q.TiLeGiam||0)*100)}%</div>
+                <div className="font-secondary font-bold text-indigo-600 text-lg">{fmt(q.GiaToiUu)}</div>
+                <div className="text-xs text-green-600 font-secondary font-bold">-{Math.round((q.TiLeGiam||0)*100)}%</div>
               </div>
             </div>
 
@@ -121,9 +121,9 @@ export default function QuoteListPage() {
             {canApprove && q.TrangThaiBaoGia === 'Chờ duyệt' && (
               <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
                 <button onClick={()=>handleApprove(q.MaBaoGia,'approve')}
-                  className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all">✅ Duyệt</button>
+                  className="flex-1 py-2 bg-green-600 text-white rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-green-700 transition-all">✅ Duyệt</button>
                 <button onClick={()=>handleApprove(q.MaBaoGia,'reject')}
-                  className="flex-1 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-bold hover:bg-red-200 transition-all">❌ Từ chối</button>
+                  className="flex-1 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-secondary font-bold uppercase tracking-wider hover:bg-red-200 transition-all">❌ Từ chối</button>
               </div>
             )}
 
@@ -140,7 +140,7 @@ export default function QuoteListPage() {
         ))}
         {filtered.length > displayCount && (
           <button onClick={() => setDisplayCount(prev => prev + 20)}
-            className="w-full py-3 text-xs font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
+            className="w-full py-3 text-xs font-secondary font-bold uppercase tracking-wider text-indigo-650 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl transition-all active:scale-95 text-center mt-2 border border-dashed border-indigo-200">
             Xem thêm ({filtered.length - displayCount} báo giá)
           </button>
         )}

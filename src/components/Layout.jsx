@@ -1,5 +1,6 @@
 import React from 'react'
 import { useStore } from '../store'
+import logoNgang from '../assets/logo-ngang-1.png'
 
 const NAV = [
   { id: 'dashboard', icon: '📊', label: 'Tổng quan',   roles: ['Admin','Quản lý CS'] },
@@ -13,14 +14,16 @@ export default function Layout({ children }) {
   const visible = NAV.filter(n => n.roles.includes(user?.Role || ''))
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-gradient-to-r from-indigo-700 to-indigo-600 text-white px-4 py-3 shadow-lg no-print sticky top-0 z-40">
-        <div className="max-w-screen-lg mx-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-lg">💎</div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-sm">Hệ Thống Tính Giá Dịch Vụ</div>
-            <div className="text-indigo-200 text-xs truncate">{user?.CoSo} · {user?.HoTen}</div>
+      <header className="bg-gradient-to-r from-indigo-800 via-indigo-700 to-indigo-600 text-white px-4 py-2 shadow-lg no-print sticky top-0 z-40 border-b-2 border-brand-orange">
+        <div className="max-w-screen-lg mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 flex items-center justify-center">
+              <img src={logoNgang} alt="Logo" className="h-full object-contain" />
+            </div>
+            <div className="hidden sm:block border-l border-white/20 h-6"></div>
+            <div className="text-indigo-200 text-xs font-secondary tracking-wide truncate">{user?.CoSo} · {user?.HoTen}</div>
           </div>
-          <button onClick={logout} className="text-xs text-indigo-200 hover:text-white">Đăng xuất</button>
+          <button onClick={logout} className="text-xs text-indigo-200 hover:text-brand-orange-light font-secondary tracking-wider uppercase transition-colors flex-shrink-0">Đăng xuất</button>
         </div>
       </header>
       <div className="hidden sm:flex">
@@ -28,9 +31,9 @@ export default function Layout({ children }) {
           {visible.map(n => (
             <button key={n.id} onClick={() => setActiveTab(n.id)} title={n.label}
               className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all
-                ${activeTab===n.id ? 'bg-white text-indigo-700 shadow-lg' : 'text-indigo-300 hover:bg-indigo-700'}`}>
+                ${activeTab===n.id ? 'bg-white text-indigo-600 shadow-lg' : 'text-indigo-300 hover:bg-indigo-700'}`}>
               <span className="text-lg leading-none">{n.icon}</span>
-              <span className="text-[9px] font-semibold">{n.label.split(' ')[0]}</span>
+              <span className="text-[9px] font-secondary font-bold uppercase tracking-wider">{n.label.split(' ')[0]}</span>
             </button>
           ))}
         </nav>
@@ -45,7 +48,7 @@ export default function Layout({ children }) {
             className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 text-xs font-semibold
               ${activeTab===n.id ? 'text-indigo-600' : 'text-slate-400'}`}>
             <span className="text-xl leading-none">{n.icon}</span>
-            <span className="text-[10px]">{n.label}</span>
+            <span className="text-[10px] font-secondary uppercase tracking-wider">{n.label}</span>
           </button>
         ))}
       </nav>
