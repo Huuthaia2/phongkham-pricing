@@ -77,10 +77,17 @@ function matchCondition(cond, cart, services, excludeIds = []) {
         .filter(i => {
           if (excludeIds.includes(i.serviceId)) return false
           const svc = services.find(s => s.MaDichVu === i.serviceId)
-          return svc &&
+          const ok = svc &&
             String(svc.NhomKM || '') === 'TQ-01' &&
             String(svc.ApDungDongThoi_TQ || '') === 'Có' &&
             Number(svc.GiaSauKM) >= cond.minPrice
+          if (!ok && svc) console.log('[ANY_TQ01 FAIL]', svc.TenDichVu, {
+            NhomKM: svc.NhomKM,
+            ApDungDongThoi_TQ: svc.ApDungDongThoi_TQ,
+            GiaSauKM: svc.GiaSauKM,
+            minPrice: cond.minPrice
+          })
+          return ok
         })
         .map(i => i.serviceId)
       return { met: matched.length >= 1, matched, missing: [] }
