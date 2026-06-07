@@ -114,7 +114,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {/* ========== HẾT PHẦN IN ========== */}
 
       {/* ========== PHẦN HIỆN THỊ TRÊN MÀN HÌNH (ẨN KHI IN) ========== */}
-      <div className="print:hidden">
+      <div className="print:hidden space-y-5">
 
       {/* KH header */}
       <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 rounded-2xl overflow-hidden text-white shadow-lg">
@@ -148,7 +148,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       )}
 
       {/* Best plan */}
-      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl shadow-green-200 mt-2">
+      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl shadow-green-200">
         <div className="flex items-center gap-2 mb-2">
           <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 flex-shrink-0 animate-pulse" />
           <span className="font-secondary uppercase tracking-wider font-bold text-sm">Phương án tối ưu nhất</span>
