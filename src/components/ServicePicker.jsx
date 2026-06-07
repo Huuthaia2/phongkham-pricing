@@ -22,38 +22,43 @@ function CondChip({ cond, services }) {
 }
 
 // ── Card một combo gợi ý ──────────────────────────────────────────────────────
-function ComboCard({ result, services, cart }) {
+function ComboCard({ result, services, cart, isApplied }) {
   const { combo, allMet, matchedCount, totalConditions, conditionResults } = result
   const [expanded, setExpanded] = useState(false)
   const preview = useMemo(() => calcComboPreview(result, cart, services), [result, cart, services])
 
+  // 3 trạng thái: applied (amber), eligible-not-applied (blue), partial (grey)
+  const cardCls = isApplied
+    ? 'bg-amber-50 border-amber-300 shadow-sm shadow-amber-100'
+    : allMet
+      ? 'bg-blue-50 border-blue-200'
+      : 'bg-white border-slate-200'
+
+  const iconCls = isApplied ? 'text-amber-500' : allMet ? 'text-blue-400' : 'text-slate-400'
+  const titleCls = isApplied ? 'text-amber-900' : allMet ? 'text-blue-800' : 'text-slate-700'
+  const priceCls = isApplied ? 'text-amber-700' : 'text-blue-700'
+
+  const badge = isApplied
+    ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Áp dụng được</span>
+    : allMet
+      ? <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">Đủ điều kiện</span>
+      : <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-mono">{matchedCount}/{totalConditions}</span>
+
   return (
-    <div className={`rounded-2xl border transition-all ${
-      allMet
-        ? 'bg-amber-50 border-amber-300 shadow-sm shadow-amber-100'
-        : 'bg-white border-slate-200'
-    }`}>
+    <div className={`rounded-2xl border transition-all ${cardCls}`}>
       <button
         className="w-full text-left px-3.5 py-3 flex items-start gap-2"
         onClick={() => setExpanded(v => !v)}
       >
-        {/* Icon */}
-        <Zap className={`w-4 h-4 mt-0.5 flex-shrink-0 ${allMet ? 'text-amber-500' : 'text-slate-400'}`} />
+        <Zap className={`w-4 h-4 mt-0.5 flex-shrink-0 ${iconCls}`} />
 
-        {/* Tên + progress */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <span className={`font-secondary font-bold text-sm leading-snug ${allMet ? 'text-amber-900' : 'text-slate-700'}`}>
+            <span className={`font-secondary font-bold text-sm leading-snug ${titleCls}`}>
               {combo.TenCombo}
             </span>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              {allMet ? (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Áp dụng được</span>
-              ) : (
-                <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-mono">
-                  {matchedCount}/{totalConditions}
-                </span>
-              )}
+              {badge}
               {expanded
                 ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
                 : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -61,14 +66,13 @@ function ComboCard({ result, services, cart }) {
             </div>
           </div>
 
-          {/* Preview giá (luôn hiện) */}
           {preview && (
             <div className="mt-1 flex items-center gap-2 flex-wrap">
               {preview.total > 0 && (
-                <span className="font-secondary font-bold text-amber-700 text-sm">{fmt(preview.total)}</span>
+                <span className={`font-secondary font-bold text-sm ${priceCls}`}>{fmt(preview.total)}</span>
               )}
               {preview.pct && (
-                <span className="font-secondary font-bold text-amber-700 text-sm">Giảm {preview.pct}%</span>
+                <span className={`font-secondary font-bold text-sm ${priceCls}`}>Giảm {preview.pct}%</span>
               )}
               {preview.saving > 0 && (
                 <span className="text-xs text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded-full">
@@ -83,7 +87,6 @@ function ComboCard({ result, services, cart }) {
         </div>
       </button>
 
-      {/* Chi tiết điều kiện (expand) */}
       {expanded && (
         <div className="px-3.5 pb-3 border-t border-slate-100 pt-2.5">
           <div className="text-xs text-slate-400 font-secondary uppercase tracking-wider mb-2">Điều kiện</div>
@@ -106,7 +109,7 @@ function ComboCard({ result, services, cart }) {
 // ── Danh sách combo gợi ý ─────────────────────────────────────────────────────
 const COMBO_PREVIEW_COUNT = 3
 
-function ComboHints({ results, services, cart }) {
+function ComboHints({ results, services, cart, appliedComboId }) {
   const [showAll, setShowAll] = useState(false)
   if (!results.length) return null
 
@@ -122,7 +125,8 @@ function ComboHints({ results, services, cart }) {
         </span>
       </div>
       {visible.map(r => (
-        <ComboCard key={r.combo.MaCombo} result={r} services={services} cart={cart} />
+        <ComboCard key={r.combo.MaCombo} result={r} services={services} cart={cart}
+          isApplied={r.combo.MaCombo === appliedComboId} />
       ))}
       {hidden > 0 && !showAll && (
         <button
@@ -212,9 +216,6 @@ export default function ServicePicker() {
       })
   }, [cart, combos, services])
 
-  const [stackMode, setStackMode] = useState(false)
-
-  // Combo tốt nhất (1 combo duy nhất)
   const bestApplied = useMemo(() => {
     let best = null, bestSaving = 0
     comboResults.filter(r => r.allMet).forEach(r => {
@@ -236,53 +237,10 @@ export default function ServicePicker() {
       }
       if (saving > bestSaving) {
         bestSaving = saving
-        best = { applied: [{ combo: r.combo, saving }], effectiveTotal: cartTotal - saving, saving }
+        best = { comboId: r.combo.MaCombo, effectiveTotal: cartTotal - saving, saving }
       }
     })
     return best
-  }, [comboResults, cart, services, cartTotal])
-
-  // Stack tất cả allMet combos không xung đột target service
-  const appliedCombos = useMemo(() => {
-    const allMets = comboResults.filter(r => r.allMet)
-    if (!allMets.length) return null
-
-    // Tính saving và targetIds cho mỗi combo
-    const candidates = allMets.map(r => {
-      const p = calcComboPreview(r, cart, services)
-      if (!p) return null
-      let saving = 0
-      let targetIds = []
-      if (r.combo.LoaiGia === 'GIA_TONG') {
-        if (!p.total || p.total <= 0) return null
-        targetIds = r.conditionResults
-          .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
-          .flatMap(c => c.matched)
-        const nonComboTQ = cart.reduce((sum, i) => {
-          if (targetIds.includes(i.serviceId)) return sum
-          return sum + Number(i._svc?.GiaSauKM || 0) * i.quantity
-        }, 0)
-        saving = cartTotal - (p.total + nonComboTQ)
-      } else {
-        saving = p.saving || 0
-        targetIds = r.targetServices || []
-      }
-      if (saving <= 0) return null
-      return { combo: r.combo, saving, targetIds }
-    }).filter(Boolean).sort((a, b) => b.saving - a.saving)
-
-    // Greedy: apply combos không xung đột target
-    const claimed = new Set()
-    const applied = []
-    let totalSaving = 0
-    for (const c of candidates) {
-      if (c.targetIds.some(id => claimed.has(id))) continue
-      c.targetIds.forEach(id => claimed.add(id))
-      applied.push(c)
-      totalSaving += c.saving
-    }
-    if (!applied.length) return null
-    return { applied, effectiveTotal: cartTotal - totalSaving, saving: totalSaving }
   }, [comboResults, cart, services, cartTotal])
 
   if (loading) return (
@@ -319,47 +277,25 @@ export default function ServicePicker() {
       </div>
 
       {/* Tổng giỏ */}
-      {cart.length > 0 && (() => {
-        const active = stackMode ? appliedCombos : bestApplied
-        const canStack = appliedCombos && appliedCombos.applied.length > 1
-        return (
-          <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
-            active ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
-          }`}>
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span>
-                ✓ Đã chọn {cart.length} dịch vụ
-                {active ? (
-                  <>
-                    {' '}· Tổng TQ: <span>{active.effectiveTotal.toLocaleString('vi-VN')}đ</span>
-                    <span className="text-green-600 ml-1 normal-case font-bold">
-                      ↓ Tiết kiệm {active.saving.toLocaleString('vi-VN')}đ
-                      {stackMode && active.applied.length > 1 && ` (${active.applied.length} combo)`}
-                    </span>
-                  </>
-                ) : (
-                  <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
-                )}
-              </span>
-              {canStack && (
-                <button
-                  onClick={() => setStackMode(v => !v)}
-                  className={`text-xs normal-case font-bold px-2 py-0.5 rounded-full border transition-colors flex-shrink-0 ${
-                    stackMode
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-white text-green-700 border-green-400 hover:bg-green-50'
-                  }`}
-                >
-                  {stackMode ? '⚡ Stack' : 'Stack combo'}
-                </button>
-              )}
-            </div>
-          </div>
-        )
-      })()}
+      {cart.length > 0 && (
+        <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
+          bestApplied ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+        }`}>
+          ✓ Đã chọn {cart.length} dịch vụ
+          {bestApplied ? (
+            <>
+              {' '}· Tổng TQ: <span>{bestApplied.effectiveTotal.toLocaleString('vi-VN')}đ</span>
+              <span className="text-green-600 ml-1 normal-case font-bold">↓ Tiết kiệm {bestApplied.saving.toLocaleString('vi-VN')}đ</span>
+            </>
+          ) : (
+            <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
+          )}
+        </div>
+      )}
 
       {/* Combo gợi ý — nhảy lên ngay khi chọn DV */}
-      <ComboHints results={comboResults} services={services} cart={cart} />
+      <ComboHints results={comboResults} services={services} cart={cart}
+        appliedComboId={bestApplied?.comboId} />
 
       {/* Danh sách dịch vụ */}
       <div className="space-y-2">
