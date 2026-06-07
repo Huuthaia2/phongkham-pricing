@@ -212,6 +212,36 @@ export default function ServicePicker() {
       })
   }, [cart, combos, services])
 
+  const [stackMode, setStackMode] = useState(false)
+
+  // Combo tốt nhất (1 combo duy nhất)
+  const bestApplied = useMemo(() => {
+    let best = null, bestSaving = 0
+    comboResults.filter(r => r.allMet).forEach(r => {
+      const p = calcComboPreview(r, cart, services)
+      if (!p) return
+      let saving = 0
+      if (r.combo.LoaiGia === 'GIA_TONG') {
+        if (!p.total || p.total <= 0) return
+        const comboIds = r.conditionResults
+          .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
+          .flatMap(c => c.matched)
+        const nonComboTQ = cart.reduce((sum, i) => {
+          if (comboIds.includes(i.serviceId)) return sum
+          return sum + Number(i._svc?.GiaSauKM || 0) * i.quantity
+        }, 0)
+        saving = cartTotal - (p.total + nonComboTQ)
+      } else {
+        saving = p.saving || 0
+      }
+      if (saving > bestSaving) {
+        bestSaving = saving
+        best = { applied: [{ combo: r.combo, saving }], effectiveTotal: cartTotal - saving, saving }
+      }
+    })
+    return best
+  }, [comboResults, cart, services, cartTotal])
+
   // Stack tất cả allMet combos không xung đột target service
   const appliedCombos = useMemo(() => {
     const allMets = comboResults.filter(r => r.allMet)
@@ -289,24 +319,44 @@ export default function ServicePicker() {
       </div>
 
       {/* Tổng giỏ */}
-      {cart.length > 0 && (
-        <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
-          appliedCombos ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
-        }`}>
-          ✓ Đã chọn {cart.length} dịch vụ
-          {appliedCombos ? (
-            <>
-              {' '}· Tổng TQ: <span>{appliedCombos.effectiveTotal.toLocaleString('vi-VN')}đ</span>
-              <span className="text-green-600 ml-1 normal-case font-bold">
-                ↓ Tiết kiệm {appliedCombos.saving.toLocaleString('vi-VN')}đ
-                {appliedCombos.applied.length > 1 && ` (${appliedCombos.applied.length} combo)`}
+      {cart.length > 0 && (() => {
+        const active = stackMode ? appliedCombos : bestApplied
+        const canStack = appliedCombos && appliedCombos.applied.length > 1
+        return (
+          <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
+            active ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+          }`}>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span>
+                ✓ Đã chọn {cart.length} dịch vụ
+                {active ? (
+                  <>
+                    {' '}· Tổng TQ: <span>{active.effectiveTotal.toLocaleString('vi-VN')}đ</span>
+                    <span className="text-green-600 ml-1 normal-case font-bold">
+                      ↓ Tiết kiệm {active.saving.toLocaleString('vi-VN')}đ
+                      {stackMode && active.applied.length > 1 && ` (${active.applied.length} combo)`}
+                    </span>
+                  </>
+                ) : (
+                  <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
+                )}
               </span>
-            </>
-          ) : (
-            <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
-          )}
-        </div>
-      )}
+              {canStack && (
+                <button
+                  onClick={() => setStackMode(v => !v)}
+                  className={`text-xs normal-case font-bold px-2 py-0.5 rounded-full border transition-colors flex-shrink-0 ${
+                    stackMode
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-white text-green-700 border-green-400 hover:bg-green-50'
+                  }`}
+                >
+                  {stackMode ? '⚡ Stack' : 'Stack combo'}
+                </button>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Combo gợi ý — nhảy lên ngay khi chọn DV */}
       <ComboHints results={comboResults} services={services} cart={cart} />
