@@ -199,19 +199,29 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       </div>
 
       {/* Partial combo suggestions */}
-      {(comboSuggestions||[]).filter(s=>s.partial).length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-          <div className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
-            <Zap className="w-4 h-4 text-amber-600 animate-bounce" />
-            <span>Thêm dịch vụ để kích hoạt Combo Siêu Hời</span>
-          </div>
-          {comboSuggestions.filter(s=>s.partial).map((s,i) => (
-            <div key={i} className="text-sm text-amber-700">
-              • <strong>{s.combo?.TenCombo}</strong>: cần thêm {(s.missingIds||[]).join(', ')}
+      {(() => {
+        const partials = (comboSuggestions||[]).filter(s=>s.partial)
+        if (!partials.length) return null
+        const MAX = 5
+        const visible = partials.slice(0, MAX)
+        const hidden  = partials.length - MAX
+        return (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+            <div className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-amber-600 animate-bounce" />
+              <span>Thêm dịch vụ để kích hoạt Combo Siêu Hời</span>
             </div>
-          ))}
-        </div>
-      )}
+            {visible.map((s,i) => (
+              <div key={i} className="text-sm text-amber-700">
+                • <strong>{s.combo?.TenCombo}</strong>: cần thêm {(s.missingIds||[]).join(', ')}
+              </div>
+            ))}
+            {hidden > 0 && (
+              <div className="text-xs text-amber-500 pt-1">+ {hidden} combo khác...</div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Detail table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
