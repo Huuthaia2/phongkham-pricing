@@ -148,7 +148,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       )}
 
       {/* Best plan */}
-      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl shadow-green-200">
+      <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-xl shadow-green-200 mt-2">
         <div className="flex items-center gap-2 mb-2">
           <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 flex-shrink-0 animate-pulse" />
           <span className="font-secondary uppercase tracking-wider font-bold text-sm">Phương án tối ưu nhất</span>
