@@ -203,7 +203,7 @@ export default function NewQuotePage() {
         <div className="fixed bottom-16 sm:bottom-4 left-0 sm:left-16 right-0 z-20 no-print px-3 sm:px-4">
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-2 bg-slate-50/80 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg border border-slate-200/60">
-              <button onClick={() => setStep(1)}
+              <button onClick={() => { clearCart(); setCalcResult(null); setStep(1) }}
                 className="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-secondary font-bold tracking-wider text-xs uppercase hover:bg-slate-50">
                 ← Quay lại
               </button>
