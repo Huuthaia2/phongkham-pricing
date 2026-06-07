@@ -137,8 +137,11 @@ export default function ServicePicker() {
   useEffect(() => {
     Promise.all([API.getServices(), API.getCombos()])
       .then(([sd, cd]) => {
-        setServices(sd.services || [])
+        const svcs = sd.services || []
+        if (svcs[0]) console.log('[DEBUG svc[0]]', svcs[0])
+        setServices(svcs)
         setGroups(sd.groups || [])
+        if (cd.combos?.[0]) console.log('[DEBUG combo[0]]', cd.combos[0])
         setCombos((cd.combos || []).filter(c => c.TrangThai === 'Đang áp dụng'))
       })
       .catch(e => setError(e.message))
