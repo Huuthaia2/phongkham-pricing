@@ -37,12 +37,13 @@ function DepositForm({ maBaoGia, onDone, user }) {
 }
 
 export default function QuoteListPage() {
-  const { user, quotesVersion, setActiveTab, setCurrentQuoteId } = useStore()
+  const { user, activeTab, quotesVersion, setActiveTab, setCurrentQuoteId } = useStore()
   const [quotes, setQuotes]   = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter]   = useState('')
   const [error, setError]     = useState('')
   const [displayCount, setDisplayCount] = useState(20)
+  const savedScrollY = React.useRef(0)
 
   useEffect(() => {
     setDisplayCount(20)
@@ -71,7 +72,16 @@ export default function QuoteListPage() {
     } catch(e) { alert('Lỗi: ' + e.message) }
   }
 
+  // Restore scroll khi quay về tab quotes
+  useEffect(() => {
+    if (activeTab === 'quotes') {
+      const y = savedScrollY.current
+      requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }))
+    }
+  }, [activeTab])
+
   function openDetail(maBaoGia) {
+    savedScrollY.current = window.scrollY
     setCurrentQuoteId(maBaoGia)
     setActiveTab('detail')
   }
