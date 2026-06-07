@@ -32,8 +32,13 @@ function PrintLayout({ quote, details, wrapClass = 'hidden print:!block' }) {
       <div className="flex items-start justify-between pb-3 border-b-2 border-indigo-700 mb-4">
         <img src={logoNgang} alt="Logo" className="h-14 object-contain" />
         <div className="text-right">
-          <div className="text-xl font-bold uppercase tracking-widest text-indigo-800">Báo Giá Dịch Vụ</div>
-          <div className="text-xs text-slate-500 mt-1">Địa chỉ: 123 Đường ABC, Hà Nội &nbsp;|&nbsp; ĐT: 1900 xxxx &nbsp;|&nbsp; Website: phongkham.vn</div>
+          <div className="text-base font-bold uppercase tracking-widest text-indigo-800 leading-snug">Công ty Cổ phần Tập đoàn Y tế Hoàng Tuấn</div>
+          <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mt-0.5">Báo Giá Dịch Vụ</div>
+          <div className="text-[10.5px] text-slate-500 mt-1 leading-relaxed">
+            Địa chỉ: Số 24 (40-BT8) 25 (38-BT8), KĐT mới Văn Quán - Yên Phúc,<br/>
+            P. Văn Quán, Q. Hà Đông, TP. Hà Nội<br/>
+            Hotline: 0961 888 656 &nbsp;|&nbsp; Website: thammyhoangtuan.vn
+          </div>
         </div>
       </div>
 
