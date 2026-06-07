@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { API } from '../api'
 import { useStore } from '../store'
 import logo from '../assets/1024x1024-logo-1.png'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 
 const GAS_URL = import.meta.env.VITE_GAS_URL
 const isConfigured = GAS_URL && GAS_URL.startsWith('http')
@@ -64,16 +65,22 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 font-medium">
-                ⚠️ {error}
+              <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 font-medium flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="w-full py-3.5 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-orange/30 hover:scale-[1.01] active:scale-95"
+              className="w-full py-3.5 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-orange/30 hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-1.5"
             >
-              {loading ? '⏳ Đang xác thực...' : 'Đăng nhập →'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang xác thực...</span>
+                </>
+              ) : 'Đăng nhập →'}
             </button>
           </form>
           <p className="text-xs text-slate-400 text-center mt-4 font-medium">

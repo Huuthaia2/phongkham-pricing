@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore } from '../store'
 import logoNgang from '../assets/logo-ngang.png'
+import { AlertTriangle, Star, Check, Gift, Zap, Printer, Save, Loader2 } from 'lucide-react'
 
 const fmt  = n => (n||0).toLocaleString('vi-VN') + 'đ'
 const fmtM = n => ((n||0)/1e6).toFixed(1) + ' tr.đ'
@@ -43,16 +44,19 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
 
       {/* Needs approval */}
       {needsApproval && (
-        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4">
-          <div className="font-bold text-red-700">⚠️ Cần Quản lý CS duyệt</div>
-          <div className="text-sm text-red-600 mt-1">Tỷ lệ giảm {(tiLeGiam*100).toFixed(1)}% vượt ngưỡng 50%. Báo giá sẽ ở trạng thái "Chờ duyệt".</div>
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 flex gap-2.5 items-start">
+          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="font-bold text-red-700">Cần Quản lý CS duyệt</div>
+            <div className="text-sm text-red-600 mt-1">Tỷ lệ giảm {(tiLeGiam*100).toFixed(1)}% vượt ngưỡng 50%. Báo giá sẽ ở trạng thái "Chờ duyệt".</div>
+          </div>
         </div>
       )}
 
       {/* Best plan */}
       <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-5 text-white shadow-xl shadow-green-200">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl">⭐</span>
+          <Star className="w-5 h-5 text-yellow-300 fill-yellow-300 flex-shrink-0 animate-pulse" />
           <span className="font-secondary uppercase tracking-wider font-bold text-sm">Phương án tối ưu nhất</span>
           <span className="ml-auto bg-white/30 px-2.5 py-0.5 rounded-full text-xs font-secondary font-bold tracking-wider">
             -{Math.round(tiLeGiam*100)}%
@@ -60,14 +64,25 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
         </div>
         <div className="text-4xl font-secondary font-bold tracking-wide mb-1">{fmt(bestPlan?.total)}</div>
         <div className="text-green-100 text-sm mb-3">{bestPlan?.label}</div>
-        <div className="space-y-0.5">
-          {(bestPlan?.promos||[]).map((p,i) => <div key={i} className="text-xs text-green-100">✓ {p}</div>)}
+        <div className="space-y-1.5">
+          {(bestPlan?.promos||[]).map((p,i) => (
+            <div key={i} className="text-xs text-green-100 flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-green-200 flex-shrink-0" />
+              <span>{p}</span>
+            </div>
+          ))}
         </div>
         {(gifts||[]).length > 0 && (
-          <div className="mt-3 pt-3 border-t border-white/20 text-xs">🎁 {gifts.join(' · ')}</div>
+          <div className="mt-3 pt-3 border-t border-white/20 text-xs flex items-center gap-1.5">
+            <Gift className="w-3.5 h-3.5 text-green-200 flex-shrink-0" />
+            <span>{gifts.join(' · ')}</span>
+          </div>
         )}
         {(bestPlan?.warnings||[]).map((w,i) => (
-          <div key={i} className="mt-1 text-xs text-yellow-200">⚠️ {w}</div>
+          <div key={i} className="mt-1.5 text-xs text-yellow-250 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 text-yellow-250 flex-shrink-0" />
+            <span>{w}</span>
+          </div>
         ))}
       </div>
 
@@ -85,7 +100,7 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
               <div className="font-secondary font-bold text-lg text-indigo-650">{fmt(plan.total)}</div>
               <div className="text-xs text-green-600 font-secondary font-bold">-{Math.round((1-plan.total/totalNY)*100)}%</div>
             </div>
-            {plan.id===bestPlan?.id && <span className="text-green-500 text-xl">✓</span>}
+            {plan.id===bestPlan?.id && <Check className="w-5 h-5 text-green-500 flex-shrink-0" />}
           </div>
         ))}
       </div>
@@ -93,7 +108,10 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {/* Partial combo suggestions */}
       {(comboSuggestions||[]).filter(s=>s.partial).length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
-          <div className="font-bold text-amber-800 text-sm">🔥 Thêm dịch vụ để kích hoạt Combo Siêu Hời</div>
+          <div className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
+            <Zap className="w-4 h-4 text-amber-600 animate-bounce" />
+            <span>Thêm dịch vụ để kích hoạt Combo Siêu Hời</span>
+          </div>
           {comboSuggestions.filter(s=>s.partial).map((s,i) => (
             <div key={i} className="text-sm text-amber-700">
               • <strong>{s.combo?.TenCombo}</strong>: cần thêm {(s.missingIds||[]).join(', ')}
@@ -112,8 +130,18 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm text-slate-800 leading-snug">{line.serviceName}</div>
               {line.quantity>1 && <div className="text-xs text-slate-400">×{line.quantity}</div>}
-              {line.gift && <div className="text-xs text-green-600">🎁 {line.gift}</div>}
-              {line.comboId && <div className="text-xs text-amber-600">🔥 {line.comboId}</div>}
+              {line.gift && (
+                <div className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+                  <Gift className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                  <span>{line.gift}</span>
+                </div>
+              )}
+              {line.comboId && (
+                <div className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                  <span>{line.comboId}</span>
+                </div>
+              )}
             </div>
             <div className="text-right flex-shrink-0">
               <div className="text-xs text-slate-400 line-through">{fmt(line.lineNY)}</div>
@@ -130,7 +158,10 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {/* Warnings */}
       {(warnings||[]).length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-1.5">
-          <div className="font-bold text-amber-800 text-sm">⚠️ Lưu ý áp dụng</div>
+          <div className="font-bold text-amber-800 text-sm flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <span>Lưu ý áp dụng</span>
+          </div>
           {warnings.map((w,i) => <div key={i} className="text-xs text-amber-700">• {w}</div>)}
         </div>
       )}
@@ -145,12 +176,23 @@ export default function PriceResult({ result, onBack, onSave, loading }) {
       {/* Actions */}
       <div className="grid grid-cols-2 gap-3 no-print pb-4">
         <button onClick={() => window.print()}
-          className="py-3 rounded-xl bg-slate-100 text-slate-700 font-secondary font-bold tracking-wider text-xs uppercase hover:bg-slate-200 transition-all">
-          🖨️ In báo giá
+          className="py-3 rounded-xl bg-slate-100 text-slate-700 font-secondary font-bold tracking-wider text-xs uppercase hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5">
+          <Printer className="w-4 h-4" />
+          <span>In báo giá</span>
         </button>
         <button onClick={() => onSave()} disabled={loading}
-          className="py-3 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-orange/30 active:scale-95">
-          {loading ? '⏳ Đang lưu...' : '💾 Lưu báo giá'}
+          className="py-3 bg-brand-gradient text-white rounded-xl font-secondary font-bold tracking-wider text-sm uppercase hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-brand-orange/30 active:scale-95 flex items-center justify-center gap-1.5">
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Đang lưu...</span>
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              <span>Lưu báo giá</span>
+            </>
+          )}
         </button>
       </div>
     </div>
