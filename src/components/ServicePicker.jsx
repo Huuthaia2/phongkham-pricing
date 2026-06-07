@@ -64,7 +64,7 @@ function ComboCard({ result, services, cart }) {
           {/* Preview giá (luôn hiện) */}
           {preview && (
             <div className="mt-1 flex items-center gap-2 flex-wrap">
-              {preview.total !== undefined && (
+              {preview.total > 0 && (
                 <span className="font-secondary font-bold text-amber-700 text-sm">{fmt(preview.total)}</span>
               )}
               {preview.pct && (
@@ -104,18 +104,7 @@ function ComboCard({ result, services, cart }) {
 }
 
 // ── Danh sách combo gợi ý ─────────────────────────────────────────────────────
-function ComboHints({ cart, combos, services }) {
-  const results = useMemo(() => {
-    if (!cart.length || !combos.length) return []
-    return combos
-      .map(cb => matchCombo(cb, cart, services))
-      .filter(r => r && (r.allMet || r.partial))
-      .sort((a, b) => {
-        if (a.allMet !== b.allMet) return a.allMet ? -1 : 1
-        return b.matchedCount - a.matchedCount
-      })
-  }, [cart, combos, services])
-
+function ComboHints({ results, services, cart }) {
   if (!results.length) return null
 
   return (
@@ -177,6 +166,44 @@ export default function ServicePicker() {
   const displayed = useMemo(() => filtered.slice(0, displayCount), [filtered, displayCount])
   const cartTotal = cart.reduce((s, i) => s + (Number(i._svc?.GiaSauKM) || 0) * i.quantity, 0)
 
+  const comboResults = useMemo(() => {
+    if (!cart.length || !combos.length) return []
+    return combos
+      .map(cb => matchCombo(cb, cart, services))
+      .filter(r => r && (r.allMet || r.partial))
+      .sort((a, b) => {
+        if (a.allMet !== b.allMet) return a.allMet ? -1 : 1
+        return b.matchedCount - a.matchedCount
+      })
+  }, [cart, combos, services])
+
+  const bestApplied = useMemo(() => {
+    let best = null, bestSaving = 0
+    comboResults.filter(r => r.allMet).forEach(r => {
+      const p = calcComboPreview(r, cart, services)
+      if (!p) return
+      let effectiveTotal = cartTotal
+      if (r.combo.LoaiGia === 'GIA_TONG' && p.total > 0) {
+        const comboIds = r.conditionResults
+          .filter(c => c.type !== 'ANY_TQ01' && c.type !== 'TAG')
+          .flatMap(c => c.matched)
+        const nonComboTQ = cart.reduce((sum, i) => {
+          if (comboIds.includes(i.serviceId)) return sum
+          return sum + Number(i._svc?.GiaSauKM || 0) * i.quantity
+        }, 0)
+        effectiveTotal = p.total + nonComboTQ
+      } else if (p.saving > 0) {
+        effectiveTotal = cartTotal - p.saving
+      }
+      const saving = cartTotal - effectiveTotal
+      if (saving > bestSaving) {
+        bestSaving = saving
+        best = { combo: r.combo, effectiveTotal, saving }
+      }
+    })
+    return best
+  }, [comboResults, cart, services, cartTotal])
+
   if (loading) return (
     <div className="flex items-center justify-center h-32 text-slate-400 gap-2">
       <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
@@ -212,13 +239,23 @@ export default function ServicePicker() {
 
       {/* Tổng giỏ */}
       {cart.length > 0 && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2.5 text-indigo-800 text-sm font-secondary font-bold tracking-wider uppercase">
-          ✓ Đã chọn {cart.length} dịch vụ · Tổng TQ: <span className="text-indigo-650">{cartTotal.toLocaleString('vi-VN')}đ</span>
+        <div className={`rounded-xl px-3 py-2.5 text-sm font-secondary font-bold tracking-wider uppercase border transition-colors ${
+          bestApplied ? 'bg-green-50 border-green-300 text-green-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+        }`}>
+          ✓ Đã chọn {cart.length} dịch vụ
+          {bestApplied ? (
+            <>
+              {' '}· Combo: <span>{bestApplied.effectiveTotal.toLocaleString('vi-VN')}đ</span>
+              <span className="text-green-600 ml-1 normal-case font-bold">↓ Tiết kiệm {bestApplied.saving.toLocaleString('vi-VN')}đ</span>
+            </>
+          ) : (
+            <> · Tổng TQ: <span>{cartTotal.toLocaleString('vi-VN')}đ</span></>
+          )}
         </div>
       )}
 
       {/* Combo gợi ý — nhảy lên ngay khi chọn DV */}
-      <ComboHints cart={cart} combos={combos} services={services} />
+      <ComboHints results={comboResults} services={services} cart={cart} />
 
       {/* Danh sách dịch vụ */}
       <div className="space-y-2">
