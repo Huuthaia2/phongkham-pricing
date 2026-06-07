@@ -104,8 +104,14 @@ function ComboCard({ result, services, cart }) {
 }
 
 // ── Danh sách combo gợi ý ─────────────────────────────────────────────────────
+const COMBO_PREVIEW_COUNT = 3
+
 function ComboHints({ results, services, cart }) {
+  const [showAll, setShowAll] = useState(false)
   if (!results.length) return null
+
+  const visible = showAll ? results : results.slice(0, COMBO_PREVIEW_COUNT)
+  const hidden  = results.length - COMBO_PREVIEW_COUNT
 
   return (
     <div className="space-y-2">
@@ -115,9 +121,25 @@ function ComboHints({ results, services, cart }) {
           Ưu đãi combo phù hợp ({results.length})
         </span>
       </div>
-      {results.map(r => (
+      {visible.map(r => (
         <ComboCard key={r.combo.MaCombo} result={r} services={services} cart={cart} />
       ))}
+      {hidden > 0 && !showAll && (
+        <button
+          onClick={() => setShowAll(true)}
+          className="w-full text-xs text-amber-600 font-secondary font-bold py-1.5 rounded-xl border border-dashed border-amber-300 hover:bg-amber-50 transition-colors"
+        >
+          Xem thêm {hidden} ưu đãi ▾
+        </button>
+      )}
+      {showAll && results.length > COMBO_PREVIEW_COUNT && (
+        <button
+          onClick={() => setShowAll(false)}
+          className="w-full text-xs text-slate-400 font-secondary py-1 hover:text-slate-600 transition-colors"
+        >
+          Thu gọn ▴
+        </button>
+      )}
     </div>
   )
 }
