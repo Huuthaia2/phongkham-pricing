@@ -42,7 +42,9 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center p-2 mx-auto mb-4 shadow-2xl overflow-hidden">
             <img src={logo} alt="Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-lg sm:text-xl font-logo tracking-wider text-white uppercase leading-snug">Hệ thống chăm sóc sức khoẻ chủ động Hoàng Tuấn</h1>
+          <h1 className="text-xl sm:text-2xl font-logo font-bold tracking-wider text-white uppercase leading-snug text-center">
+            Hệ thống chăm sóc sức khoẻ <br /> chủ động Hoàng Tuấn
+          </h1>
           <p className="text-indigo-200 font-secondary tracking-wide text-xs uppercase mt-1.5">Hệ thống tính giá dịch vụ nội bộ</p>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-2xl border border-indigo-900/10">
