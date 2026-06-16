@@ -2,3 +2,7 @@ node_modules
 dist
 .env
 .env.local
+
+# SQLite database (rebuild from build_db.py)
+*.db
+*.db-journal
